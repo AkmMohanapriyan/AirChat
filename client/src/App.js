@@ -1,46 +1,6 @@
-// import { Routes, Route } from 'react-router-dom';
-// import { useEffect, useState } from 'react';
-// import SplashScreen from './components/SplashScreen';
-// import HomePage from './pages/HomePage';
-// import './App.css';
-// import AuthModal from './components/AuthModal';
 
 
-// function App() {
-//   const [loading, setLoading] = useState(true);
 
-//     const [showAuthModal, setShowAuthModal] = useState(false);
-
-//   useEffect(() => {
-//     const timer = setTimeout(() => {
-//       setLoading(false);
-//     }, 3000);
-
-//     return () => clearTimeout(timer);
-//   }, []);
-
-//   if (loading) {
-//     return <SplashScreen />;
-//   }
-
-//   return (
-//     <div className="App">
-//       <Routes>
-//         <Route path="/" element={<HomePage />} />
-//       </Routes>
-
-//             <AuthModal 
-//         show={showAuthModal} 
-//         onHide={() => setShowAuthModal(false)} 
-//       />
-//     </div>
-//   );
-// }
-
-// export default App;
-
-
-// src/App.js
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import SplashScreen from './components/SplashScreen';
@@ -59,25 +19,38 @@ function App() {
       setLoading(false);
     }, 3000);
     
-    // Check if user is authenticated (in a real app, you would verify the token)
+    // Check if user is authenticated
     const token = localStorage.getItem('airchat_token');
     const userData = localStorage.getItem('airchat_user');
     
-    if (token && userData) {
-      setIsAuthenticated(true);
-      setUser(JSON.parse(userData));
+    // Handle case where userData might be undefined or invalid
+    if (token) {
+      try {
+        // Only parse if userData exists
+        if (userData) {
+          const parsedUserData = JSON.parse(userData);
+          setUser(parsedUserData);
+        }
+        setIsAuthenticated(true);
+      } catch (error) {
+        console.error('Error parsing user data:', error);
+        // Clear invalid data
+        localStorage.removeItem('airchat_token');
+        localStorage.removeItem('airchat_user');
+      }
     }
 
     return () => clearTimeout(timer);
   }, []);
 
   const handleLoginSuccess = (userData) => {
-    // In a real app, you would set tokens here
-    localStorage.setItem('airchat_token', 'dummy_token');
-    localStorage.setItem('airchat_user', JSON.stringify(userData));
-    setIsAuthenticated(true);
-    setUser(userData);
-    toast.success("Logged in successfully!");
+    if (userData) {
+      localStorage.setItem('airchat_token', 'dummy_token');
+      localStorage.setItem('airchat_user', JSON.stringify(userData));
+      setIsAuthenticated(true);
+      setUser(userData);
+      toast.success("Logged in successfully!");
+    }
   };
 
   const handleLogout = () => {

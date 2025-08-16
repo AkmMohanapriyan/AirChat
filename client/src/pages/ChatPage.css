@@ -410,3 +410,214 @@
     display: block;
   }
 }
+
+/* Add to existing ChatPage.css */
+.spinner-border {
+  width: 3rem;
+  height: 3rem;
+}
+
+.no-messages {
+  text-align: center;
+  padding: 20px;
+  color: #667781;
+}
+
+.sending-indicator {
+  display: block;
+  font-size: 0.7rem;
+  color: #999;
+  font-style: italic;
+  margin-top: 4px;
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
+.logout-btn {
+  background: none;
+  border: none;
+  color: #54656f;
+  font-size: 1.2rem;
+  transition: color 0.2s;
+}
+
+.logout-btn:hover {
+  color: #4e44ce;
+}
+
+/* Responsive improvements */
+@media (max-width: 768px) {
+  .airchat-container {
+    flex-direction: column;
+  }
+  
+  .sidebar {
+    width: 100%;
+    height: 40vh;
+    border-right: none;
+    border-bottom: 1px solid #e0e0e0;
+  }
+  
+  .main-chat-area {
+    height: 60vh;
+  }
+}
+
+
+/* Add to ChatPage.css */
+
+/* Online status indicators */
+.online-badge {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 10px;
+  height: 10px;
+  background-color: #4e44ce;
+  border: 2px solid white;
+  border-radius: 50%;
+}
+
+.chat-partner .online-badge {
+  width: 12px;
+  height: 12px;
+}
+
+.online-text {
+  color: #4e44ce;
+  font-weight: 500;
+}
+
+/* Message status indicators */
+.message-meta {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+  margin-top: 2px;
+  font-size: 0.7rem;
+}
+
+.message-status {
+  display: flex;
+  align-items: center;
+}
+
+.double-check {
+  display: flex;
+  margin-left: 2px;
+}
+
+.double-check.blue {
+  color: #4e44ce;
+}
+
+/* Chat list improvements */
+.chat-item.active {
+  background-color: #f0f2f5;
+}
+
+.chat-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.last-message-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.last-message-text {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #667781;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+}
+
+.last-message-time {
+  font-size: 0.75rem;
+  color: #8696a0;
+  white-space: nowrap;
+  margin-left: 8px;
+}
+
+.no-messages-text {
+  color: #8696a0;
+  font-size: 0.9rem;
+  font-style: italic;
+}
+
+.message-status {
+  margin-right: 4px;
+}
+
+/* Sending spinner */
+.sending-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: white;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Message bubbles */
+.message.sent .message-content {
+  background-color: #d9fdd3;
+  border-top-right-radius: 0;
+}
+
+.message.received .message-content {
+  background-color: #ffffff;
+  border-top-left-radius: 0;
+}
+
+.message-content {
+  padding: 8px 12px;
+  border-radius: 7.5px;
+  max-width: 80%;
+  word-wrap: break-word;
+  position: relative;
+}
+
+/* Scrollbar styling */
+.chat-messages {
+  scrollbar-width: thin;
+  scrollbar-color: #c5c5c5 transparent;
+}
+
+.chat-messages::-webkit-scrollbar {
+  width: 6px;
+}
+
+.chat-messages::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.chat-messages::-webkit-scrollbar-thumb {
+  background-color: #c5c5c5;
+  border-radius: 3px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .last-message-time {
+    display: none;
+  }
+  
+  .last-message-text {
+    font-size: 0.8rem;
+  }
+}

@@ -8,6 +8,11 @@ import { fileURLToPath } from 'url';
 import connectDB from './config/db.js';
 import authRoutes from './routes/authRoutes.js';
 
+import userRoutes from './routes/userRoutes.js';
+import messageRoutes from './routes/messageRoutes.js';
+import notificationRoutes from './routes/notificationRoutes.js';
+
+
 // Load environment variables
 dotenv.config();
 
@@ -37,6 +42,11 @@ connectDB();
 
 // Routes
 app.use('/api/auth', authRoutes);
+
+app.use('/api/users', userRoutes);
+app.use('/api/messages', messageRoutes);
+app.use('/api/notifications', notificationRoutes);
+
 
 // Error handling middleware
 app.use((err, req, res, next) => {
