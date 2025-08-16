@@ -1,0 +1,129 @@
+/* Modal Header */
+.login-modal-header {
+  background: linear-gradient(135deg, #0072ff, #00c6ff);
+  color: white;
+  border-bottom: none;
+  border-radius: 0;
+  padding: 2rem 1.5rem 1.5rem;
+}
+
+.login-modal-header .close {
+  color: white;
+  opacity: 0.8;
+  text-shadow: none;
+}
+
+.login-modal-header .close:hover {
+  opacity: 1;
+}
+
+.login-modal-header .modal-title {
+  font-weight: 700;
+  font-size: 1.8rem;
+  margin-bottom: 0.25rem;
+}
+
+.login-modal-header p {
+  font-weight: 300;
+  opacity: 0.9;
+  margin-bottom: 0;
+}
+
+/* Modal Body */
+.login-modal-body {
+  padding: 2rem;
+  background-color: #f8f9fa;
+}
+
+/* Input Fields */
+.input-icon {
+  position: absolute;
+  left: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+  color: #0072ff;
+}
+
+.input-field {
+  height: 50px;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  padding-left: 45px !important;
+  /* Ensure padding for icon */
+}
+
+.input-field:focus {
+  border-color: #0072ff;
+  box-shadow: 0 0 0 3px rgba(0, 114, 255, 0.2);
+}
+
+.password-toggle {
+  position: absolute;
+  right: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  color: #6c757d;
+  z-index: 10;
+}
+
+.password-toggle:hover {
+  color: #0072ff;
+}
+
+.error-feedback {
+  display: block;
+  margin-top: 8px;
+  color: #dc3545;
+  font-size: 0.85rem;
+}
+
+/* Links */
+.auth-links span {
+  color: #0072ff;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+}
+
+.auth-links span:hover {
+  color: #0056b3;
+  text-decoration: underline;
+}
+
+/* Login Button */
+.login-btn {
+  background: linear-gradient(90deg, #0072ff, #00c6ff);
+  border: none;
+  border-radius: 8px;
+  padding: 12px;
+  font-weight: 600;
+  font-size: 1rem;
+  letter-spacing: 0.5px;
+  box-shadow: 0 4px 15px rgba(0, 114, 255, 0.3);
+  transition: all 0.3s ease;
+  height: 50px;
+}
+
+.login-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 114, 255, 0.4);
+}
+
+.login-btn:disabled {
+  background: linear-gradient(90deg, #a0cfff, #80bfff);
+  transform: none;
+  box-shadow: none;
+  opacity: 0.7;
+}
+
+/* Spinner */
+.spinner-border {
+  width: 1.5rem;
+  height: 1.5rem;
+  border-width: 0.2em;
+}

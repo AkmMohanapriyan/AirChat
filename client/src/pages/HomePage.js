@@ -1,7 +1,6 @@
 
 
 
-// src/pages/HomePage.js
 import React, { useState } from 'react';
 import { Container, Row, Col, Button, Modal } from 'react-bootstrap';
 import { toast } from 'react-toastify';
@@ -21,88 +20,92 @@ const HomePage = ({ onLoginSuccess }) => {
   const [userId, setUserId] = useState(null);
   const [resetToken, setResetToken] = useState('');
 
+  // Modal handlers
   const handleLoginShow = () => setShowLogin(true);
   const handleLoginClose = () => setShowLogin(false);
-
   const handleSignupShow = () => setShowSignup(true);
   const handleSignupClose = () => setShowSignup(false);
-
   const handleForgotPasswordShow = () => {
     setShowLogin(false);
     setShowForgotPassword(true);
   };
   const handleForgotPasswordClose = () => setShowForgotPassword(false);
-
   const handleResetPasswordShow = (token) => {
     setResetToken(token);
     setShowForgotPassword(false);
     setShowResetPassword(true);
   };
   const handleResetPasswordClose = () => setShowResetPassword(false);
-
   const handleVerifyAccountShow = (id) => {
     setUserId(id);
     setShowSignup(false);
     setShowVerifyAccount(true);
   };
   const handleVerifyAccountClose = () => setShowVerifyAccount(false);
-
   const switchToSignup = () => {
     setShowLogin(false);
     setShowSignup(true);
   };
-
   const switchToLogin = () => {
     setShowSignup(false);
     setShowLogin(true);
   };
 
+  // Success handlers
   const handleLoginSuccess = (userData) => {
     handleLoginClose();
-    onLoginSuccess(userData); // Pass user data to App.js
+    onLoginSuccess(userData);
     toast.success('Logged in successfully!');
   };
-
   const handleSignupSuccess = (userId) => {
     handleSignupClose();
     handleVerifyAccountShow(userId);
     toast.info('Please verify your account with the code sent to your email');
   };
-
   const handleForgotPasswordSuccess = () => {
     handleForgotPasswordClose();
     toast.info('Password reset instructions sent to your email');
   };
-
   const handleResetPasswordSuccess = () => {
     handleResetPasswordClose();
     toast.success('Password reset successfully!');
   };
-
   const handleVerifyAccountSuccess = (userData) => {
     handleVerifyAccountClose();
-    onLoginSuccess(userData); // Log in after successful verification
+    onLoginSuccess(userData);
     toast.success('Account verified successfully!');
   };
 
   return (
     <Container fluid className="home-page">
+      {/* Background overlay */}
+      <div className="background-overlay"></div>
+      
       <Row className="justify-content-center align-items-center min-vh-100">
-        <Col md={8} lg={6} className="text-center">
-          <h1 className="display-4 mb-4">Welcome to AirChat</h1>
+        <Col md={8} lg={6} className="text-center content-container">
+          <div className="logo-container mb-4">
+            <div className="app-logo">
+              <span className="logo-text">AirChat</span>
+            </div>
+          </div>
+          
+          <h1 className="display-4 mb-4">Connect with People</h1>
           <p className="lead mb-5">
-            Connect with friends and family in real-time with our secure and easy-to-use chat application.
+            Real-time messaging with end-to-end encryption. Stay connected with friends and family.
           </p>
-          <Button variant="primary" size="lg" onClick={handleLoginShow} className="me-3">
-            Login
-          </Button>
-          <Button variant="outline-primary" size="lg" onClick={handleSignupShow}>
-            Sign Up
-          </Button>
+          
+          <div className="cta-buttons">
+            <Button variant="primary" size="lg" onClick={handleLoginShow} className="me-3 login-btn">
+              Login
+            </Button>
+            <Button variant="outline-light" size="lg" onClick={handleSignupShow} className="signup-btn">
+              Sign Up
+            </Button>
+          </div>
         </Col>
       </Row>
 
-      {/* Login Modal */}
+      {/* Auth Modals */}
       <Modal show={showLogin} onHide={handleLoginClose} centered className="auth-modal">
         <LoginForm 
           onClose={handleLoginClose} 
@@ -112,7 +115,6 @@ const HomePage = ({ onLoginSuccess }) => {
         />
       </Modal>
 
-      {/* Signup Modal */}
       <Modal show={showSignup} onHide={handleSignupClose} centered className="auth-modal">
         <SignupForm 
           onClose={handleSignupClose} 
@@ -121,7 +123,6 @@ const HomePage = ({ onLoginSuccess }) => {
         />
       </Modal>
 
-      {/* Forgot Password Modal */}
       <Modal show={showForgotPassword} onHide={handleForgotPasswordClose} centered className="auth-modal">
         <ForgotPasswordForm 
           onClose={handleForgotPasswordClose} 
@@ -130,7 +131,6 @@ const HomePage = ({ onLoginSuccess }) => {
         />
       </Modal>
 
-      {/* Reset Password Modal */}
       <Modal show={showResetPassword} onHide={handleResetPasswordClose} centered className="auth-modal">
         <ResetPasswordForm 
           resetToken={resetToken}
@@ -139,7 +139,6 @@ const HomePage = ({ onLoginSuccess }) => {
         />
       </Modal>
 
-      {/* Verify Account Modal */}
       <Modal show={showVerifyAccount} onHide={handleVerifyAccountClose} centered className="auth-modal">
         <VerifyAccountForm 
           userId={userId}

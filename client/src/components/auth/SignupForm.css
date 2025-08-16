@@ -1,0 +1,146 @@
+ /* .input-icon {
+          position: absolute;
+          left: 15px;
+          top: 60%;
+          transform: translateY(-50%);
+          z-index: 10;
+          color: #6c757d;
+        }
+        
+        .input-field {
+          padding-left: 40px !important;
+          border-radius: 8px;
+          border: 1px solid #e1e8ed;
+          height: 50px;
+        }
+        
+        .input-field:focus {
+          border-color: #1da1f2;
+          box-shadow: 0 0 0 0.2rem rgba(29, 161, 242, 0.25);
+        }
+        
+        .password-toggle {
+          position: absolute;
+          right: 15px;
+          top: 60%;
+          transform: translateY(-50%);
+          cursor: pointer;
+          color: #6c757d;
+        }
+        
+        .custom-file-input {
+          border-radius: 8px;
+          border: 1px solid #e1e8ed;
+          padding: 0.75rem;
+        }
+        
+        .login-btn:hover {
+          background-color: #0d8bd9 !important;
+          border-color: #0d8bd9 !important;
+        }
+        
+        .link-primary:hover {
+          text-decoration: underline;
+        }
+        
+        @media (max-width: 768px) {
+          .input-icon {
+            top: 55%;
+          }
+          
+          .password-toggle {
+            top: 55%;
+          }
+          
+          .input-field, .custom-file-input {
+            height: 45px;
+            font-size: 0.9rem;
+          }
+        } */
+
+ .signup-modal-body {
+     background: linear-gradient(135deg, #0072ff, #00c6ff);
+     color: white;
+     border-bottom: none;
+     border-radius: 0;
+     padding: 2rem 1.5rem 1.5rem;
+ }
+
+ .input-container {
+     position: relative;
+     width: 100%;
+ }
+
+ .input-icon {
+     position: absolute;
+     left: 15px;
+     top: 50%;
+     transform: translateY(-50%);
+     z-index: 10;
+     color: #6c757d;
+     height: 24px;
+     display: flex;
+     align-items: center;
+ }
+
+ .input-field {
+     padding-left: 45px !important;
+     border-radius: 8px;
+     border: 1px solid #e1e8ed;
+     height: 50px;
+     width: 100%;
+ }
+
+ .input-field:focus {
+     border-color: #1da1f2;
+     box-shadow: 0 0 0 0.2rem rgba(29, 161, 242, 0.25);
+ }
+
+ .password-toggle {
+     position: absolute;
+     right: 15px;
+     top: 50%;
+     transform: translateY(-50%);
+     cursor: pointer;
+     color: #6c757d;
+     height: 24px;
+     display: flex;
+     align-items: center;
+ }
+
+ .custom-file-input {
+     border-radius: 8px;
+     border: 1px solid #e1e8ed;
+     padding: 0.75rem;
+     width: 100%;
+ }
+
+ .login-btn:hover {
+     background-color: #0d8bd9 !important;
+     border-color: #0d8bd9 !important;
+ }
+
+ .link-primary:hover {
+     text-decoration: underline;
+ }
+
+ .form-label {
+     font-weight: 500;
+     margin-bottom: 8px;
+     color: #000000;
+ }
+
+ @media (max-width: 768px) {
+
+     .input-field,
+     .custom-file-input {
+         height: 45px;
+         font-size: 0.9rem;
+         padding-left: 40px !important;
+     }
+
+     .input-icon,
+     .password-toggle {
+         height: 20px;
+     }
+ }
