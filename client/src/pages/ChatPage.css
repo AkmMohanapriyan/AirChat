@@ -1,4 +1,3 @@
-/* src/pages/ChatPage.css */
 .airchat-container {
   display: flex;
   height: 100vh;
@@ -387,7 +386,7 @@
 
 /* Responsive Design */
 @media (max-width: 768px) {
-  .sidebar {
+  /* .sidebar {
     width: 100%;
     max-width: none;
     display: ${activeChat ? 'none' : 'flex'};
@@ -395,14 +394,13 @@
   
   .main-chat-area {
     display: ${activeChat ? 'flex' : 'none'};
-  }
+  } */
   
   .back-button {
     display: block;
   }
 }
 
-/* Add to existing ChatPage.css */
 .spinner-border {
   width: 3rem;
   height: 3rem;
@@ -457,7 +455,6 @@
 }
 
 
-/* Add to ChatPage.css */
 
 /* Online status indicators */
 .online-badge {
@@ -614,7 +611,6 @@
 }
 
 
-/* Add these styles to your existing ChatPage.css */
 
 /* Chat Header Styles */
 .chat-header {
