@@ -379,21 +379,6 @@
   font-size: 16px;
 }
 
-.logout-btn {
-  background-color: #4e44ce;
-  color: white;
-  border: none;
-  border-radius: 20px;
-  padding: 10px 25px;
-  font-weight: 600;
-  cursor: pointer;
-  margin-top: 20px;
-}
-
-.logout-btn:hover {
-  background-color: #3a32a5;
-}
-
 /* Responsive Design */
 @media (max-width: 768px) {
   .sidebar {

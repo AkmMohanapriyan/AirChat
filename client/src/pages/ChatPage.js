@@ -1509,7 +1509,7 @@ import { useNavigate } from 'react-router-dom';
 import {
     FaSearch, FaEllipsisV, FaPaperclip, FaMicrophone, FaSmile,
     FaSignOutAlt, FaCheck, FaClock, FaTimes, FaArrowUp, FaArrowDown,
-    FaPalette, FaImage, FaBan, FaTrash, FaUserSlash
+    FaPalette, FaImage, FaBan, FaTrash, FaUserSlash,
 } from 'react-icons/fa';
 import { IoIosSend } from 'react-icons/io';
 import { toast } from 'react-toastify';
@@ -1997,6 +1997,22 @@ const ChatPage = ({ user, onLogout }) => {
         '#f3e5f5', // Light purple
         '#ffebee', // Light red
         '#e8f5e9', // Light green
+        '#fce4ec', // Soft pink
+        '#ede7f6', // Lavender
+        '#f1f8e9', // Pale green
+        '#fff3e0', // Peach
+        '#e0f7fa', // Aqua blue
+        '#e0f2f1', // Mint gray
+        '#f9fbe7', // Lemon yellow
+        '#fbe9e7', // Coral peach
+        '#f3f4f6', // Light gray (neutral)
+        '#f0f4c3', // Lime tint
+        '#c8e6c9', // Pastel green
+        '#d7ccc8', // Warm beige
+        '#f5f5f5', // Soft neutral white-gray
+        '#ffe0b2', // Pastel orange
+        '#cfd8dc', // Cool gray-blue
+
     ];
 
     // Predefined wallpaper options
@@ -2029,7 +2045,7 @@ const ChatPage = ({ user, onLogout }) => {
                             onClick={() => setShowBlockedUsers(!showBlockedUsers)}
                             title={showBlockedUsers ? "Show Chats" : "Show Blocked Users"}
                         >
-                            <FaUserSlash />
+                            <FaBan />
                         </button>
                         <button
                             className="icon-btn logout-btn"
