@@ -1111,6 +1111,31 @@ const ChatPage = ({ user, onLogout }) => {
   const [showFriendOptions, setShowFriendOptions] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
 
+  const [isMobilePanelOpen, setIsMobilePanelOpen] = useState(false);
+
+// Handle mobile animations
+  useEffect(() => {
+  if (showNotifications) {
+    // Timeout to allow DOM update before applying active class
+    setTimeout(() => setIsMobilePanelOpen(true), 10);
+  } else {
+    setIsMobilePanelOpen(false);
+  }
+}, [showNotifications]);
+
+
+useEffect(() => {
+  if (showNotifications && window.innerWidth <= 768) {
+    document.body.style.overflow = 'hidden';
+  } else {
+    document.body.style.overflow = 'auto';
+  }
+  
+  return () => {
+    document.body.style.overflow = 'auto';
+  };
+}, [showNotifications]);
+
   // Simulate online status
   useEffect(() => {
     const onlineUserIds = new Set(['1', '3', '8']);
@@ -1207,45 +1232,47 @@ const ChatPage = ({ user, onLogout }) => {
     `${friend.firstName} ${friend.lastName}`.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const sendFriendRequest = async (userId) => {
-    try {
-      await axios.post('/api/friend-requests', { receiverId: userId });
-      toast.success('Friend request sent');
-      // Update UI to show request sent
-      setAllUsers(prev => prev.map(u => 
-        u._id === userId ? { ...u, requestSent: true } : u
-      ));
-    } catch (error) {
-      toast.error('Failed to send friend request');
-      console.error('Error sending friend request:', error);
-    }
-  };
+const sendFriendRequest = async (userId) => {
+  try {
+    // Change 'receiverId' to 'recipientId' to match backend
+    await axios.post('/api/friend-requests', { recipientId: userId });
+    
+    toast.success('Friend request sent');
+    setAllUsers(prev => prev.map(u => 
+      u._id === userId ? { ...u, requestSent: true } : u
+    ));
+  } catch (error) {
+    const message = error.response?.data?.message || 'Failed to send request';
+    toast.error(message);
+    console.error('Friend request error:', error.response?.data);
+  }
+};
 
-  const acceptFriendRequest = async (requestId, senderId) => {
-    try {
-      await axios.put(`/api/friend-requests/${requestId}/accept`);
-      // Add to friends list
-      const newFriend = allUsers.find(u => u._id === senderId);
-      setFriends(prev => [...prev, newFriend]);
-      // Remove from requests
-      setFriendRequests(prev => prev.filter(req => req._id !== requestId));
-      toast.success('Friend request accepted');
-    } catch (error) {
-      toast.error('Failed to accept friend request');
-      console.error('Error accepting friend request:', error);
-    }
-  };
+const acceptFriendRequest = async (requestId) => {
+  try {
+    await axios.put(`/api/friend-requests/${requestId}`, { status: 'accepted' });
+    
+    // Update UI
+    setFriendRequests(prev => prev.filter(req => req._id !== requestId));
+    toast.success('Friend request accepted');
+  } catch (error) {
+    toast.error('Failed to accept request');
+    console.error('Accept error:', error);
+  }
+};
 
-  const rejectFriendRequest = async (requestId) => {
-    try {
-      await axios.delete(`/api/friend-requests/${requestId}`);
-      setFriendRequests(prev => prev.filter(req => req._id !== requestId));
-      toast.info('Friend request rejected');
-    } catch (error) {
-      toast.error('Failed to reject friend request');
-      console.error('Error rejecting friend request:', error);
-    }
-  };
+const rejectFriendRequest = async (requestId) => {
+  try {
+    await axios.put(`/api/friend-requests/${requestId}`, { status: 'rejected' });
+    
+    // Update UI
+    setFriendRequests(prev => prev.filter(req => req._id !== requestId));
+    toast.info('Friend request rejected');
+  } catch (error) {
+    toast.error('Failed to reject request');
+    console.error('Reject error:', error);
+  }
+};
 
   const handleSendMessage = async () => {
     if (!message.trim() || !activeChat) return;
@@ -1304,6 +1331,17 @@ const ChatPage = ({ user, onLogout }) => {
   const viewUserDetails = (user) => {
     setSelectedUser(user);
   };
+
+
+  const handleClose = () => {
+  setShowNotifications(false);
+  
+  // Reset body overflow when closing panel
+  if (window.innerWidth <= 768) {
+    document.body.style.overflow = 'auto';
+  }
+};
+
 
   return (
     <div className="airchat-container">
@@ -1703,63 +1741,77 @@ const ChatPage = ({ user, onLogout }) => {
       )}
 
       {/* Notifications Panel */}
-      {showNotifications && (
-        <div className="notifications-panel">
-          <div className="panel-header">
-            <h3>Friend Requests</h3>
-            <button 
-              className="close-btn" 
-              onClick={() => setShowNotifications(false)}
-            >
-              <FaTimes />
-            </button>
-          </div>
-          
-          <div className="panel-content">
-            {friendRequests.length === 0 ? (
-              <div className="no-requests">
-                <p>No pending friend requests</p>
-              </div>
+
+{/* Add backdrop for mobile */}
+<div 
+  className={`notifications-backdrop ${showNotifications ? 'active' : ''}`} 
+  onClick={() => setShowNotifications(false)}
+/>
+
+{/* Updated notifications panel */}
+<div className={`notifications-panel ${showNotifications ? 'active' : ''}`}>
+  <div className="panel-header">
+    <h3>Friend Requests</h3>
+    <button 
+      className="close-btn" 
+      onClick={handleClose}
+    >
+      <FaTimes />
+    </button>
+  </div>
+  
+<div className="panel-content">
+  {friendRequests.length === 0 ? (
+    <div className="no-requests">
+      <p>No pending friend requests</p>
+    </div>
+  ) : (
+    friendRequests.map(request => (
+      <div key={request._id} className="request-item">
+        <div className="request-main">
+          <div className="request-avatar">
+            {request.requester?.profilePhoto ? (
+              <img 
+                src={request.requester.profilePhoto} 
+                alt={`${request.requester.firstName} ${request.requester.lastName}`} 
+              />
             ) : (
-              friendRequests.map(request => (
-                <div key={request._id} className="request-item">
-                  <div className="request-avatar">
-                    {request.sender.profilePhoto ? (
-                      <img src={request.sender.profilePhoto} alt={`${request.sender.firstName} ${request.sender.lastName}`} />
-                    ) : (
-                      <div className="avatar-placeholder">
-                        {request.sender.firstName.charAt(0)}
-                      </div>
-                    )}
-                  </div>
-                  <div className="request-info">
-                    <div className="request-name">
-                      {request.sender.firstName} {request.sender.lastName}
-                    </div>
-                    <div className="request-message">
-                      Wants to be your friend
-                    </div>
-                  </div>
-                  <div className="request-actions">
-                    <button 
-                      className="accept-btn"
-                      onClick={() => acceptFriendRequest(request._id, request.sender._id)}
-                    >
-                      Accept
-                    </button>
-                    <button 
-                      className="reject-btn"
-                      onClick={() => rejectFriendRequest(request._id)}
-                    >
-                      Reject
-                    </button>
-                  </div>
-                </div>
-              ))
+              <div className="avatar-placeholder">
+                {request.requester?.firstName?.charAt(0)}
+              </div>
             )}
           </div>
+          
+          <div className="request-details">
+            <div className="request-name">
+              {request.requester?.firstName} {request.requester?.lastName}
+            </div>
+            <div className="request-message">
+              Wants to be your friend
+            </div>
+          </div>
         </div>
-      )}
+        
+        <div className="request-actions">
+          <button 
+            className="accept-btn"
+            onClick={() => acceptFriendRequest(request._id)}
+          >
+            Accept
+          </button>
+          <button 
+            className="reject-btn"
+            onClick={() => rejectFriendRequest(request._id)}
+          >
+            Reject
+          </button>
+        </div>
+      </div>
+    ))
+  )}
+</div>
+</div>
+
     </div>
   );
 };

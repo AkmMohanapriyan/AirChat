@@ -12,6 +12,7 @@ import userRoutes from './routes/userRoutes.js';
 import messageRoutes from './routes/messageRoutes.js';
 import notificationRoutes from './routes/notificationRoutes.js';
 
+import friendRoutes from './routes/friendRoutes.js';  // Add this import
 
 // Load environment variables
 dotenv.config();
@@ -47,6 +48,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/messages', messageRoutes);
 app.use('/api/notifications', notificationRoutes);
 
+app.use('/api', friendRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
