@@ -7319,8 +7319,12 @@ const ChatPage = ({ user, token, onLogout }) => {
                                         key={friend._id}
                                         className={`chat-item ${isActive ? 'active' : ''}`}
                                         onClick={() => {
-                                            const fullUser = allUsers.find(u => u._id === friend._id) || friend;
-                                            setActiveChat({ ...fullUser });
+                                              const fullUser = allUsers.find(u => u._id === friend._id) || friend;
+  setActiveChat({ ...fullUser });
+
+    if (window.innerWidth <= 768) {
+    setShowSidebar(false);
+  }
 
                                             if (friendMsgs.length) {
                                                 const lastMsg = friendMsgs[friendMsgs.length - 1];
