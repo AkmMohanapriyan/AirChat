@@ -237,7 +237,7 @@ export const login = async (req, res, next) => {
       .cookie('token', token, options)
       .json({
         success: true,
-        token,
+        token, // Make sure to include token in response body
         user: {
           _id: user._id,
           firstName: user.firstName,

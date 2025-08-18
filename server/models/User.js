@@ -63,6 +63,9 @@ const userSchema = new mongoose.Schema({
     type: Date,
     select: false
   },
+
+  isBlocked: { type: Boolean, default: false },   // ✅ added field
+
   createdAt: {
     type: Date,
     default: Date.now

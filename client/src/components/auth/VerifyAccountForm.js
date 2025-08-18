@@ -23,10 +23,10 @@ const VerifyAccountForm = ({ userId, onClose, onSuccess }) => {
     onSubmit: async (values) => {
       setIsLoading(true);
       try {
-        const response = await axios.post('/api/auth/verify', {
-          userId,
-          verificationCode: values.verificationCode
-        });
+const response = await axios.post('/api/auth/verify', {
+  userId, // Make sure this prop is passed correctly
+  verificationCode: values.verificationCode
+});
         
         if (response.data.success) {
           onSuccess();

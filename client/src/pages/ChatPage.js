@@ -1077,743 +1077,4280 @@
 
 
 
+// import React, { useState, useEffect, useRef } from 'react';
+// import { useNavigate } from 'react-router-dom';
+// import {
+//   FaSearch, FaEllipsisV, FaPaperclip, FaMicrophone, FaSmile,
+//   FaSignOutAlt, FaCheck, FaClock, FaTimes, FaArrowUp, FaArrowDown,
+//   FaPalette, FaImage, FaBan, FaTrash, FaUserPlus, FaBell, FaUserFriends
+// } from 'react-icons/fa';
+// import { IoIosSend, IoIosAdd } from 'react-icons/io';
+// import { MdArrowBack, MdSearch, MdClose } from 'react-icons/md';
+// import { toast } from 'react-toastify';
+// import axios from 'axios';
+// import './ChatPage.css';
+
+// const ChatPage = ({ user, onLogout,setChatTheme, blockUser }) => {
+//   const navigate = useNavigate();
+//   const [activeTab, setActiveTab] = useState('chats');
+//   const [friends, setFriends] = useState([]);
+//   const [allUsers, setAllUsers] = useState([]);
+//   const [activeChat, setActiveChat] = useState(null);
+//   const [message, setMessage] = useState('');
+//   const [messages, setMessages] = useState({});
+//   const [searchTerm, setSearchTerm] = useState('');
+//   const [loadingFriends, setLoadingFriends] = useState(true);
+//   const [loadingMessages, setLoadingMessages] = useState(false);
+//   const [isSending, setIsSending] = useState(false);
+//   const [onlineUsers, setOnlineUsers] = useState(new Set());
+//   const messagesEndRef = useRef(null);
+//   const [showAddFriendModal, setShowAddFriendModal] = useState(false);
+//   const [friendRequests, setFriendRequests] = useState([]);
+//   const [showNotifications, setShowNotifications] = useState(false);
+//   const [showSidebar, setShowSidebar] = useState(true);
+//   const [showFriendOptions, setShowFriendOptions] = useState(false);
+//   const [selectedUser, setSelectedUser] = useState(null);
+
+//   const [isMobilePanelOpen, setIsMobilePanelOpen] = useState(false);
+
+
+//     const [showSearch, setShowSearch] = useState(false);
+//   const [searchQuery, setSearchQuery] = useState('');
+//   const [showMenu, setShowMenu] = useState(false);
+//   const [showContactPopup, setShowContactPopup] = useState(false);
+//   const [showThemePopup, setShowThemePopup] = useState(false);
+//   const [themeMode, setThemeMode] = useState('default'); // 'default', 'color', 'wallpaper'
+//   const [selectedColor, setSelectedColor] = useState(null);
+//   const [selectedWallpaper, setSelectedWallpaper] = useState(null);
+
+//   const menuRef = useRef(null);
+//   const themeRef = useRef(null);
+
+
+
+// // Handle mobile animations
+//   useEffect(() => {
+//   if (showNotifications) {
+//     // Timeout to allow DOM update before applying active class
+//     setTimeout(() => setIsMobilePanelOpen(true), 10);
+//   } else {
+//     setIsMobilePanelOpen(false);
+//   }
+// }, [showNotifications]);
+
+
+// useEffect(() => {
+//   if (showNotifications && window.innerWidth <= 768) {
+//     document.body.style.overflow = 'hidden';
+//   } else {
+//     document.body.style.overflow = 'auto';
+//   }
+
+//   return () => {
+//     document.body.style.overflow = 'auto';
+//   };
+// }, [showNotifications]);
+
+//   // Simulate online status
+//   useEffect(() => {
+//     const onlineUserIds = new Set(['1', '3', '8']);
+//     setOnlineUsers(onlineUserIds);
+//   }, []);
+
+//   // Fetch friends from the database
+//   useEffect(() => {
+//     const fetchFriends = async () => {
+//       try {
+//         setLoadingFriends(true);
+//         // This would be replaced with actual API call to get friends
+//         const response = await axios.get('/api/friends');
+//         setFriends(response.data);
+//       } catch (error) {
+//         toast.error('Failed to load friends');
+//         console.error('Error fetching friends:', error);
+//       } finally {
+//         setLoadingFriends(false);
+//       }
+//     };
+
+//     fetchFriends();
+//   }, [user.id]);
+
+//   // Fetch all users for add friend modal
+//   useEffect(() => {
+//     const fetchAllUsers = async () => {
+//       try {
+//         const response = await axios.get('/api/users');
+//         setAllUsers(response.data.filter(u => u._id !== user.id));
+//       } catch (error) {
+//         toast.error('Failed to load users');
+//         console.error('Error fetching users:', error);
+//       }
+//     };
+
+//     fetchAllUsers();
+//   }, [user.id]);
+
+//   // Fetch friend requests
+//   useEffect(() => {
+//     const fetchFriendRequests = async () => {
+//       try {
+//         const response = await axios.get('/api/friend-requests');
+//         setFriendRequests(response.data);
+//       } catch (error) {
+//         toast.error('Failed to load friend requests');
+//         console.error('Error fetching friend requests:', error);
+//       }
+//     };
+
+//     fetchFriendRequests();
+//   }, [user.id]);
+
+//   // Fetch messages when a chat is selected
+//   useEffect(() => {
+//     const fetchMessages = async () => {
+//       if (!activeChat) return;
+
+//       try {
+//         setLoadingMessages(true);
+//         const response = await axios.get(`/api/messages/${activeChat._id}`);
+//         setMessages(prev => ({
+//           ...prev,
+//           [activeChat._id]: response.data
+//         }));
+//       } catch (error) {
+//         toast.error('Failed to load messages');
+//         console.error('Error fetching messages:', error);
+//       } finally {
+//         setLoadingMessages(false);
+//       }
+//     };
+
+//     fetchMessages();
+//   }, [activeChat]);
+
+//   // Scroll to bottom when messages change
+//   useEffect(() => {
+//     scrollToBottom();
+//   }, [messages, activeChat]);
+
+//   const scrollToBottom = () => {
+//     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+//   };
+
+//   const handleLogout = () => {
+//     onLogout();
+//     navigate("/");
+//   };
+
+//   const filteredFriends = friends.filter(friend =>
+//     `${friend.firstName} ${friend.lastName}`.toLowerCase().includes(searchTerm.toLowerCase())
+//   );
+
+// const sendFriendRequest = async (userId) => {
+//   try {
+//     // Change 'receiverId' to 'recipientId' to match backend
+//     await axios.post('/api/friend-requests', { recipientId: userId });
+
+//     toast.success('Friend request sent');
+//     setAllUsers(prev => prev.map(u => 
+//       u._id === userId ? { ...u, requestSent: true } : u
+//     ));
+//   } catch (error) {
+//     const message = error.response?.data?.message || 'Failed to send request';
+//     toast.error(message);
+//     console.error('Friend request error:', error.response?.data);
+//   }
+// };
+
+// const acceptFriendRequest = async (requestId) => {
+//   try {
+//     await axios.put(`/api/friend-requests/${requestId}`, { status: 'accepted' });
+
+//     // Update UI
+//     setFriendRequests(prev => prev.filter(req => req._id !== requestId));
+//     toast.success('Friend request accepted');
+//   } catch (error) {
+//     toast.error('Failed to accept request');
+//     console.error('Accept error:', error);
+//   }
+// };
+
+// const rejectFriendRequest = async (requestId) => {
+//   try {
+//     await axios.put(`/api/friend-requests/${requestId}`, { status: 'rejected' });
+
+//     // Update UI
+//     setFriendRequests(prev => prev.filter(req => req._id !== requestId));
+//     toast.info('Friend request rejected');
+//   } catch (error) {
+//     toast.error('Failed to reject request');
+//     console.error('Reject error:', error);
+//   }
+// };
+
+//   const handleSendMessage = async () => {
+//     if (!message.trim() || !activeChat) return;
+
+//     const receiverId = activeChat._id;
+
+//     const newMessage = {
+//       text: message,
+//       sender: user.id,
+//       receiver: receiverId,
+//       createdAt: new Date()
+//     };
+
+//     try {
+//       setIsSending(true);
+//       const response = await axios.post('/api/messages', newMessage);
+
+//       setMessages(prev => ({
+//         ...prev,
+//         [receiverId]: [...(prev[receiverId] || []), response.data]
+//       }));
+
+//       setMessage('');
+//     } catch (error) {
+//       toast.error('Failed to send message');
+//       console.error('Error sending message:', error);
+//     } finally {
+//       setIsSending(false);
+//     }
+//   };
+
+//   const handleKeyPress = (e) => {
+//     if (e.key === 'Enter' && !e.shiftKey) {
+//       e.preventDefault();
+//       handleSendMessage();
+//     }
+//   };
+
+//   // Format time for messages
+//   const formatMessageTime = (dateString) => {
+//     const date = new Date(dateString);
+//     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+//   };
+
+//   // Check if user is online
+//   const isUserOnline = (userId) => {
+//     return onlineUsers.has(userId);
+//   };
+
+//   // Toggle sidebar on mobile
+//   const toggleSidebar = () => {
+//     setShowSidebar(!showSidebar);
+//   };
+
+//   // View user details
+//   const viewUserDetails = (user) => {
+//     setSelectedUser(user);
+//   };
+
+
+//   const handleClose = () => {
+//   setShowNotifications(false);
+
+//   // Reset body overflow when closing panel
+//   if (window.innerWidth <= 768) {
+//     document.body.style.overflow = 'auto';
+//   }
+// };
+
+
+
+
+//   const handleThemeSelection = () => {
+//     if (selectedColor) {
+//       setChatTheme({ type: 'color', value: selectedColor });
+//     } else if (selectedWallpaper) {
+//       setChatTheme({ type: 'wallpaper', value: selectedWallpaper });
+//     }
+//     setShowThemePopup(false);
+//   };
+
+//   const handleBlockUser = () => {
+//     blockUser(activeChat._id);
+//     setShowMenu(false);
+//   };
+
+//   const handleClearChat = () => {
+//     clearChatHistory(activeChat._id);
+//     setShowMenu(false);
+//   };
+
+
+
+//     useEffect(() => {
+//     const handleClickOutside = (e) => {
+//       if (menuRef.current && !menuRef.current.contains(e.target)) {
+//         setShowMenu(false);
+//       }
+//       if (themeRef.current && !themeRef.current.contains(e.target)) {
+//         setShowThemePopup(false);
+//       }
+//     };
+
+//     document.addEventListener('mousedown', handleClickOutside);
+//     return () => document.removeEventListener('mousedown', handleClickOutside);
+//   }, []);
+
+//   // Highlight search matches
+//   useEffect(() => {
+//     if (searchQuery) {
+//       // Implement your message highlighting logic here
+//       console.log(`Searching for: ${searchQuery}`);
+//       // This would typically iterate through messages and highlight matches
+//     }
+//   }, [searchQuery]);
+
+// const clearChatHistory = async (userId) => {
+//   try {
+//     const token = localStorage.getItem('token'); 
+
+//     await axios.delete(`http://localhost:5000/api/chats/${userId}/clear`, {  // FIX: use backend port
+//       headers: { Authorization: `Bearer ${token}` }
+//     });
+
+//     setMessages([]);
+//     localStorage.removeItem(`chat_${userId}`);
+//   } catch (error) {
+//     console.error('Clear chat error:', error.response?.data || error.message);
+//   }
+// };
+
+//   return (
+//     <div className="airchat-container">
+//       {/* Sidebar - Only show on large screens or when toggled on mobile */}
+//       {(showSidebar || window.innerWidth > 768) && (
+//         <div className="sidebar">
+//           <div className="sidebar-header">
+//             <div className="app-logo">
+//               <span className="logo-text">AirChat</span>
+//             </div>
+//             <div className="header-actions">
+//               <button
+//                 className="icon-btn notification-btn"
+//                 onClick={() => setShowNotifications(!showNotifications)}
+//                 title="Notifications"
+//               >
+//                 <FaBell />
+//                 {friendRequests.length > 0 && (
+//                   <span className="notification-badge">{friendRequests.length}</span>
+//                 )}
+//               </button>
+//               <button
+//                 className="icon-btn logout-btn"
+//                 onClick={handleLogout}
+//                 title="Logout"
+//               >
+//                 <FaSignOutAlt />
+//               </button>
+//             </div>
+//           </div>
+
+//           <div className="tabs">
+//             <button
+//               className={`tab-btn ${activeTab === 'chats' ? 'active' : ''}`}
+//               onClick={() => setActiveTab('chats')}
+//             >
+//               CHATS
+//             </button>
+//             <button
+//               className={`tab-btn ${activeTab === 'status' ? 'active' : ''}`}
+//               onClick={() => setActiveTab('status')}
+//             >
+//               STATUS
+//             </button>
+//           </div>
+
+//           {/* <div className="search-container">
+//             <div className="search-box">
+//               <FaSearch className="search-icon" />
+//               <input
+//                 type="text"
+//                 placeholder="Search friends"
+//                 value={searchTerm}
+//                 onChange={(e) => setSearchTerm(e.target.value)}
+//               />
+//             </div>
+//           </div> */}
+
+//           <div className="chats-list">
+//             {loadingFriends ? (
+//               <div className="text-center py-4">
+//                 <div className="spinner-border text-primary" role="status">
+//                   <span className="visually-hidden">Loading...</span>
+//                 </div>
+//               </div>
+//             ) : filteredFriends.length === 0 ? (
+//               <div className="text-center py-4">
+//                 <p>No friends found</p>
+//               </div>
+//             ) : (
+//               filteredFriends.map(friend => {
+//                 const lastMessage = messages[friend._id]?.[messages[friend._id]?.length - 1];
+//                 const isOnline = isUserOnline(friend._id);
+
+//                 return (
+//                   <div
+//                     key={friend._id}
+//                     className={`chat-item ${activeChat?._id === friend._id ? 'active' : ''}`}
+//                     onClick={() => {
+//                       setActiveChat(friend);
+//                       if (window.innerWidth <= 768) setShowSidebar(false);
+//                     }}
+//                   >
+//                     <div className="avatar">
+//                       {friend.profilePhoto ? (
+//                         <img src={friend.profilePhoto} alt={`${friend.firstName} ${friend.lastName}`} />
+//                       ) : (
+//                         <div className="avatar-placeholder">
+//                           {friend.firstName.charAt(0)}
+//                         </div>
+//                       )}
+//                       {isOnline && <span className="online-badge"></span>}
+//                     </div>
+//                     <div className="chat-info">
+//                       <div className="chat-header">
+//                         <div className="user-name">{friend.firstName} {friend.lastName}</div>
+//                         <div className="last-seen">
+//                           {isOnline ? (
+//                             <span className="online-text">Online</span>
+//                           ) : (
+//                             <span>Offline</span>
+//                           )}
+//                         </div>
+//                       </div>
+//                       <div className="last-message-container">
+//                         {lastMessage ? (
+//                           <>
+//                             <div className="last-message-text">
+//                               {lastMessage.text}
+//                             </div>
+//                             <div className="last-message-time">
+//                               {formatMessageTime(lastMessage.createdAt)}
+//                             </div>
+//                           </>
+//                         ) : (
+//                           <div className="no-messages-text">No messages yet</div>
+//                         )}
+//                       </div>
+//                     </div>
+//                   </div>
+//                 );
+//               })
+//             )}
+//           </div>
+
+//           {/* Friend Options Toggle */}
+//           <div className="friend-options-toggle">
+//             <button
+//               className="toggle-btn"
+//               onClick={() => setShowFriendOptions(!showFriendOptions)}
+//             >
+//               <IoIosAdd />
+//             </button>
+
+//             {showFriendOptions && (
+//               <div className="friend-options">
+//                 <button 
+//                   className="friend-option-btn"
+//                   onClick={() => {
+//                     setShowAddFriendModal(true);
+//                     setShowFriendOptions(false);
+//                   }}
+//                 >
+//                   <FaUserPlus /> Add Friend
+//                 </button>
+//                 <button 
+//                   className="friend-option-btn"
+//                   onClick={() => setShowFriendOptions(false)}
+//                 >
+//                   <MdArrowBack /> Back
+//                 </button>
+//               </div>
+//             )}
+//           </div>
+//         </div>
+//       )}
+
+//       {/* Main Chat Area */}
+//       <div className={`main-chat-area ${!showSidebar && window.innerWidth <= 768 ? 'expanded' : ''}`}>
+//         {activeChat ? (
+//           <>
+//             {/* <div className="chat-header">
+//               {window.innerWidth <= 768 && (
+//                 <button 
+//                   className="back-btn"
+//                   onClick={() => {
+//                     setShowSidebar(true);
+//                     setActiveChat(null);
+//                   }}
+//                 >
+//                   <MdArrowBack />
+//                 </button>
+//               )}
+//               <div className="chat-partner">
+//                 <div className="avatar">
+//                   {activeChat.profilePhoto ? (
+//                     <img src={activeChat.profilePhoto} alt={`${activeChat.firstName} ${activeChat.lastName}`} />
+//                   ) : (
+//                     <div className="avatar-placeholder">
+//                       {activeChat.firstName.charAt(0)}
+//                     </div>
+//                   )}
+//                   {isUserOnline(activeChat._id) && <span className="online-badge"></span>}
+//                 </div>
+//                 <div className="partner-info">
+//                   <div className="partner-name">
+//                     {activeChat.firstName} {activeChat.lastName}
+//                   </div>
+//                   <div className="partner-status">
+//                     {isUserOnline(activeChat._id) ? (
+//                       <span className="online-text">Online</span>
+//                     ) : (
+//                       <span>Offline</span>
+//                     )}
+//                   </div>
+//                 </div>
+//               </div>
+//               <div className="header-actions">
+//                 <button className="icon-btn">
+//                   <FaEllipsisV />
+//                 </button>
+//               </div>
+//             </div> */}
+
+// <div className="chat-header">
+//       {/* Left section - Back button & Profile */}
+//       <div className="header-left">
+//         {window.innerWidth <= 768 && (
+//           <button 
+//             className="back-btn"
+//             onClick={() => {
+//               setShowSidebar(true);
+//               setActiveChat(null);
+//             }}
+//           >
+//             <MdArrowBack />
+//           </button>
+//         )}
+
+//         <div className="chat-partner">
+//           <div className="avatar">
+//             {activeChat.profilePhoto ? (
+//               <img 
+//                 src={activeChat.profilePhoto} 
+//                 alt={`${activeChat.firstName} ${activeChat.lastName}`} 
+//               />
+//             ) : (
+//               <div className="avatar-placeholder">
+//                 {activeChat.firstName?.charAt(0)}
+//               </div>
+//             )}
+//             {isUserOnline(activeChat._id) && <span className="online-badge"></span>}
+//           </div>
+//           <div className="partner-info">
+//             <div className="partner-name">
+//               {activeChat.firstName} {activeChat.lastName}
+//             </div>
+//             <div className="partner-status">
+//               {isUserOnline(activeChat._id) ? (
+//                 <span className="online-text">Online</span>
+//               ) : (
+//                 <span>Offline</span>
+//               )}
+//             </div>
+//           </div>
+//         </div>
+//       </div>
+
+//       {/* Center section - Search */}
+//       {/* <div className="header-center">
+//         {showSearch ? (
+//           <div className="search-container">
+//             <input
+//               type="text"
+//               placeholder="Search messages..."
+//               value={searchQuery}
+//               onChange={(e) => setSearchQuery(e.target.value)}
+//               autoFocus
+//             />
+//             <button 
+//               className="close-search"
+//               onClick={() => {
+//                 setShowSearch(false);
+//                 setSearchQuery('');
+//               }}
+//             >
+//               <MdClose />
+//             </button>
+//           </div>
+//         ) : null}
+//       </div> */}
+
+//       {/* Right section - Actions */}
+//       <div className="header-actions">
+//         {/* <button 
+//           className="icon-btn"
+//           onClick={() => setShowSearch(!showSearch)}
+//         >
+//           <MdSearch />
+//         </button> */}
+
+//         <div className="menu-container" ref={menuRef}>
+//           <button 
+//             className="icon-btn"
+//             onClick={() => setShowMenu(!showMenu)}
+//           >
+//             <FaEllipsisV />
+//           </button>
+
+//           {showMenu && (
+//             <div className="menu-popup">
+//               <button onClick={() => {
+//                 setShowContactPopup(true);
+//                 setShowMenu(false);
+//               }}>
+//                 View Contact
+//               </button>
+//               <button onClick={() => {
+//                 setShowThemePopup(true);
+//                 setShowMenu(false);
+//               }}>
+//                 Chat Theme
+//               </button>
+//               <button onClick={handleBlockUser}>
+//                 Block User
+//               </button>
+//               {/* <button onClick={handleClearChat}>
+//                 Clear Chat
+//               </button> */}
+//             </div>
+//           )}
+//         </div>
+//       </div>
+
+//       {/* Contact Popup */}
+//       {showContactPopup && (
+//         <div className="contact-popup">
+//           <div className="popup-content">
+//             <button 
+//               className="close-popup"
+//               onClick={() => setShowContactPopup(false)}
+//             >
+//               <MdClose />
+//             </button>
+
+//             <div className="contact-header">
+//               <div className="contact-avatar">
+//                 {activeChat.profilePhoto ? (
+//                   <img 
+//                     src={activeChat.profilePhoto} 
+//                     alt={`${activeChat.firstName} ${activeChat.lastName}`} 
+//                   />
+//                 ) : (
+//                   <div className="avatar-placeholder large">
+//                     {activeChat.firstName?.charAt(0)}
+//                   </div>
+//                 )}
+//               </div>
+//               <h3>{activeChat.firstName} {activeChat.lastName}</h3>
+//             </div>
+
+//             <div className="contact-details">
+//               <div className="detail-item">
+//                 <label>Email:</label>
+//                 <span>{activeChat.email || 'Not provided'}</span>
+//               </div>
+//               <div className="detail-item">
+//                 <label>Phone:</label>
+//                 <span>{activeChat.phoneNumber || 'Not provided'}</span>
+//               </div>
+//               <div className="detail-item">
+//                 <label>Country:</label>
+//                 <span>{activeChat.country || 'Not provided'}</span>
+//               </div>
+//               <div className="detail-item">
+//                 <label>Status:</label>
+//                 <span>
+//                   {isUserOnline(activeChat._id) 
+//                     ? 'Online' 
+//                     : 'Offline'}
+//                 </span>
+//               </div>
+//             </div>
+//           </div>
+//         </div>
+//       )}
+
+//       {/* Theme Popup */}
+//       {showThemePopup && (
+//         <div className="theme-popup" ref={themeRef}>
+//           <div className="popup-content">
+//             <button 
+//               className="close-popup"
+//               onClick={() => setShowThemePopup(false)}
+//             >
+//               <MdClose />
+//             </button>
+
+//             <h3>Chat Theme</h3>
+
+//             <div className="theme-tabs">
+//               <button 
+//                 className={themeMode === 'color' ? 'active' : ''}
+//                 onClick={() => setThemeMode('color')}
+//               >
+//                 Color Theme
+//               </button>
+//               <button 
+//                 className={themeMode === 'wallpaper' ? 'active' : ''}
+//                 onClick={() => setThemeMode('wallpaper')}
+//               >
+//                 Wallpaper
+//               </button>
+//             </div>
+
+//             <div className="theme-content">
+//               {themeMode === 'color' ? (
+//                 <div className="color-themes">
+//                   <h4>Select a color theme:</h4>
+//                   <div className="color-grid">
+//                     {['#f0f8ff', '#fff0f5', '#f5f5dc', '#e6e6fa', '#f0fff0', '#fffacd'].map(color => (
+//                       <div 
+//                         key={color}
+//                         className={`color-option ${selectedColor === color ? 'selected' : ''}`}
+//                         style={{ backgroundColor: color }}
+//                         onClick={() => setSelectedColor(color)}
+//                       />
+//                     ))}
+//                   </div>
+//                 </div>
+//               ) : (
+//                 <div className="wallpaper-themes">
+//                   <h4>Select a wallpaper:</h4>
+//                   <input 
+//                     type="file" 
+//                     accept="image/*"
+//                     onChange={(e) => {
+//                       if (e.target.files[0]) {
+//                         const reader = new FileReader();
+//                         reader.onload = (event) => {
+//                           setSelectedWallpaper(event.target.result);
+//                         };
+//                         reader.readAsDataURL(e.target.files[0]);
+//                       }
+//                     }}
+//                   />
+//                   {selectedWallpaper && (
+//                     <div className="wallpaper-preview">
+//                       <img src={selectedWallpaper} alt="Wallpaper preview" />
+//                     </div>
+//                   )}
+//                 </div>
+//               )}
+//             </div>
+
+//             <div className="theme-actions">
+//               <button 
+//                 className="cancel-btn"
+//                 onClick={() => setShowThemePopup(false)}
+//               >
+//                 Cancel
+//               </button>
+//               <button 
+//                 className="confirm-btn"
+//                 onClick={handleThemeSelection}
+//                 disabled={!selectedColor && !selectedWallpaper}
+//               >
+//                 Apply Theme
+//               </button>
+//             </div>
+//           </div>
+//         </div>
+//       )}
+//     </div>
+
+
+//             <div className="chat-messages">
+//               {loadingMessages ? (
+//                 <div className="text-center py-4">
+//                   <div className="spinner-border text-primary" role="status">
+//                     <span className="visually-hidden">Loading messages...</span>
+//                   </div>
+//                 </div>
+//               ) : messages[activeChat._id]?.length === 0 ? (
+//                 <div className="no-messages">
+//                   <p>No messages yet. Start the conversation!</p>
+//                 </div>
+//               ) : (
+//                 messages[activeChat._id]?.map((msg) => (
+//                   <div
+//                     key={msg._id}
+//                     className={`message ${msg.sender === user.id ? 'sent' : 'received'}`}
+//                   >
+//                     <div className="message-content">
+//                       {msg.text}
+//                     </div>
+//                     <div className="message-meta">
+//                       <div className="message-time">
+//                         {formatMessageTime(msg.createdAt)}
+//                       </div>
+//                     </div>
+//                   </div>
+//                 ))
+//               )}
+//               <div ref={messagesEndRef} />
+//             </div>
+
+//             <div className="message-input-area">
+//               <button className="icon-btn">
+//                 <FaSmile />
+//               </button>
+//               <button className="icon-btn">
+//                 <FaPaperclip />
+//               </button>
+//               <div className="message-input-container">
+//                 <textarea
+//                   value={message}
+//                   onChange={(e) => setMessage(e.target.value)}
+//                   onKeyDown={handleKeyPress}
+//                   placeholder="Type a message"
+//                   rows={1}
+//                 />
+//               </div>
+//               {message ? (
+//                 <button
+//                   className="send-btn"
+//                   onClick={handleSendMessage}
+//                   disabled={isSending}
+//                 >
+//                   {isSending ? (
+//                     <div className="sending-spinner"></div>
+//                   ) : (
+//                     <IoIosSend />
+//                   )}
+//                 </button>
+//               ) : (
+//                 <button className="icon-btn">
+//                   <FaMicrophone />
+//                 </button>
+//               )}
+//             </div>
+//           </>
+//         ) : (
+//           <div className="no-chat-selected">
+//             <div className="welcome-container">
+//               <div className="logo-large">
+//                 <span className="logo-text">AirChat</span>
+//               </div>
+//               <h2>Welcome, {user.name}</h2>
+//               <p>Select a chat to start messaging</p>
+//               <p>Or start a new conversation</p>
+//             </div>
+//           </div>
+//         )}
+//       </div>
+
+//       {/* Add Friend Modal */}
+//       {showAddFriendModal && (
+//         <div className="modal-overlay">
+//           <div className="add-friend-modal">
+//             <div className="modal-header">
+//               <h3>Add Friends</h3>
+//               <button 
+//                 className="close-btn" 
+//                 onClick={() => setShowAddFriendModal(false)}
+//               >
+//                 <FaTimes />
+//               </button>
+//             </div>
+
+//             <div className="modal-content">
+//               {allUsers
+//                 .filter(u => 
+//                   !friends.some(f => f._id === u._id) && 
+//                   !friendRequests.some(r => r.senderId === u._id)
+//                 )
+//                 .map(user => (
+//                   <div key={user._id} className="user-item">
+//                     <div className="user-avatar">
+//                       {user.profilePhoto ? (
+//                         <img src={user.profilePhoto} alt={`${user.firstName} ${user.lastName}`} />
+//                       ) : (
+//                         <div className="avatar-placeholder">
+//                           {user.firstName.charAt(0)}
+//                         </div>
+//                       )}
+//                     </div>
+//                     <div className="user-info">
+//                       <div className="user-name">{user.firstName} {user.lastName}</div>
+//                       <div className="user-country">{user.country || 'Unknown'}</div>
+//                     </div>
+//                     <div className="user-actions">
+//                       <button 
+//                         className="view-btn"
+//                         onClick={() => viewUserDetails(user)}
+//                       >
+//                         View
+//                       </button>
+//                       <button 
+//                         className={`add-btn ${user.requestSent ? 'sent' : ''}`}
+//                         onClick={() => sendFriendRequest(user._id)}
+//                         disabled={user.requestSent}
+//                       >
+//                         {user.requestSent ? 'Request Sent' : 'Add'}
+//                       </button>
+//                     </div>
+//                   </div>
+//                 ))}
+//             </div>
+//           </div>
+//         </div>
+//       )}
+
+//       {/* User Detail Modal */}
+//       {selectedUser && (
+//         <div className="modal-overlay">
+//           <div className="user-detail-modal">
+//             <div className="modal-header">
+//               <h3>User Details</h3>
+//               <button 
+//                 className="close-btn" 
+//                 onClick={() => setSelectedUser(null)}
+//               >
+//                 <FaTimes />
+//               </button>
+//             </div>
+
+//             <div className="modal-content">
+//               <div className="user-avatar-large">
+//                 {selectedUser.profilePhoto ? (
+//                   <img src={selectedUser.profilePhoto} alt={`${selectedUser.firstName} ${selectedUser.lastName}`} />
+//                 ) : (
+//                   <div className="avatar-placeholder large">
+//                     {selectedUser.firstName.charAt(0)}
+//                   </div>
+//                 )}
+//               </div>
+
+//               <div className="user-details">
+//                 <div className="detail-item">
+//                   <span className="detail-label">First Name:</span>
+//                   <span className="detail-value">{selectedUser.firstName}</span>
+//                 </div>
+//                 <div className="detail-item">
+//                   <span className="detail-label">Last Name:</span>
+//                   <span className="detail-value">{selectedUser.lastName}</span>
+//                 </div>
+//                 <div className="detail-item">
+//                   <span className="detail-label">Country:</span>
+//                   <span className="detail-value">{selectedUser.country || 'Unknown'}</span>
+//                 </div>
+//                 <div className="detail-item">
+//                   <span className="detail-label">Email:</span>
+//                   <span className="detail-value">{selectedUser.email}</span>
+//                 </div>
+//               </div>
+
+//               <div className="modal-actions">
+//                 <button 
+//                   className="close-detail-btn"
+//                   onClick={() => setSelectedUser(null)}
+//                 >
+//                   Close
+//                 </button>
+//               </div>
+//             </div>
+//           </div>
+//         </div>
+//       )}
+
+//       {/* Notifications Panel */}
+
+// {/* Add backdrop for mobile */}
+// <div 
+//   className={`notifications-backdrop ${showNotifications ? 'active' : ''}`} 
+//   onClick={() => setShowNotifications(false)}
+// />
+
+// {/* Updated notifications panel */}
+// <div className={`notifications-panel ${showNotifications ? 'active' : ''}`}>
+//   <div className="panel-header">
+//     <h3>Friend Requests</h3>
+//     <button 
+//       className="close-btn" 
+//       onClick={handleClose}
+//     >
+//       <FaTimes />
+//     </button>
+//   </div>
+
+// <div className="panel-content">
+//   {friendRequests.length === 0 ? (
+//     <div className="no-requests">
+//       <p>No pending friend requests</p>
+//     </div>
+//   ) : (
+//     friendRequests.map(request => (
+//       <div key={request._id} className="request-item">
+//         <div className="request-main">
+//           <div className="request-avatar">
+//             {request.requester?.profilePhoto ? (
+//               <img 
+//                 src={request.requester.profilePhoto} 
+//                 alt={`${request.requester.firstName} ${request.requester.lastName}`} 
+//               />
+//             ) : (
+//               <div className="avatar-placeholder">
+//                 {request.requester?.firstName?.charAt(0)}
+//               </div>
+//             )}
+//           </div>
+
+//           <div className="request-details">
+//             <div className="request-name">
+//               {request.requester?.firstName} {request.requester?.lastName}
+//             </div>
+//             <div className="request-message">
+//               Wants to be your friend
+//             </div>
+//           </div>
+//         </div>
+
+//         <div className="request-actions">
+//           <button 
+//             className="accept-btn"
+//             onClick={() => acceptFriendRequest(request._id)}
+//           >
+//             Accept
+//           </button>
+//           <button 
+//             className="reject-btn"
+//             onClick={() => rejectFriendRequest(request._id)}
+//           >
+//             Reject
+//           </button>
+//         </div>
+//       </div>
+//     ))
+//   )}
+// </div>
+// </div>
+
+//     </div>
+//   );
+// };
+
+// export default ChatPage;
+
+
+
+// import React, { useState, useEffect, useRef } from 'react';
+// import { useNavigate } from 'react-router-dom';
+// import {
+//     FaSearch, FaEllipsisV, FaPaperclip, FaMicrophone, FaSmile,
+//     FaSignOutAlt, FaCheck, FaClock, FaTimes, FaArrowUp, FaArrowDown,
+//     FaPalette, FaImage, FaBan, FaTrash, FaUserPlus, FaBell, FaUserFriends
+// } from 'react-icons/fa';
+// import { IoIosSend, IoIosAdd } from 'react-icons/io';
+// import { MdArrowBack, MdSearch, MdClose } from 'react-icons/md';
+// import { toast } from 'react-toastify';
+// import axios from 'axios';
+// import './ChatPage.css';
+
+// const ChatPage = ({ user, onLogout }) => {
+//     const navigate = useNavigate();
+//     const [activeTab, setActiveTab] = useState('chats');
+//     const [friends, setFriends] = useState([]);
+//     const [allUsers, setAllUsers] = useState([]);
+//     const [activeChat, setActiveChat] = useState(null);
+//     const [message, setMessage] = useState('');
+//     const [messages, setMessages] = useState({});
+//     const [searchTerm, setSearchTerm] = useState('');
+//     const [loadingFriends, setLoadingFriends] = useState(true);
+//     const [loadingMessages, setLoadingMessages] = useState(false);
+//     const [isSending, setIsSending] = useState(false);
+//     const [onlineUsers, setOnlineUsers] = useState(new Set());
+//     const messagesEndRef = useRef(null);
+//     const [showAddFriendModal, setShowAddFriendModal] = useState(false);
+//     const [friendRequests, setFriendRequests] = useState([]);
+//     const [showNotifications, setShowNotifications] = useState(false);
+//     const [showSidebar, setShowSidebar] = useState(true);
+//     const [showFriendOptions, setShowFriendOptions] = useState(false);
+//     const [selectedUser, setSelectedUser] = useState(null);
+//     const [isMobilePanelOpen, setIsMobilePanelOpen] = useState(false);
+//     const [showSearch, setShowSearch] = useState(false);
+//     const [searchQuery, setSearchQuery] = useState('');
+//     const [showMenu, setShowMenu] = useState(false);
+//     const [showContactPopup, setShowContactPopup] = useState(false);
+//     const [showThemePopup, setShowThemePopup] = useState(false);
+//     const [themeMode, setThemeMode] = useState('default');
+//     const [selectedColor, setSelectedColor] = useState(null);
+//     const [selectedWallpaper, setSelectedWallpaper] = useState(null);
+//     const menuRef = useRef(null);
+//     const themeRef = useRef(null);
+
+// const BACKEND_URL = "http://localhost:5000";
+
+//     const [currentTheme, setCurrentTheme] = useState({});
+
+//     useEffect(() => {
+//         if (activeChat?._id) {
+//             const themeData = localStorage.getItem('chatThemes');
+//             const themes = themeData ? JSON.parse(themeData) : {};
+//             setCurrentTheme(themes[activeChat._id] || {});
+//         } else {
+//             setCurrentTheme({});
+//         }
+//     }, [activeChat]);
+
+//     // Handle mobile animations
+//     useEffect(() => {
+//         if (showNotifications) {
+//             setTimeout(() => setIsMobilePanelOpen(true), 10);
+//         } else {
+//             setIsMobilePanelOpen(false);
+//         }
+//     }, [showNotifications]);
+
+//     useEffect(() => {
+//         if (showNotifications && window.innerWidth <= 768) {
+//             document.body.style.overflow = 'hidden';
+//         } else {
+//             document.body.style.overflow = 'auto';
+//         }
+
+//         return () => {
+//             document.body.style.overflow = 'auto';
+//         };
+//     }, [showNotifications]);
+
+//     // Simulate online status
+//     useEffect(() => {
+//         const onlineUserIds = new Set(['1', '3', '8']);
+//         setOnlineUsers(onlineUserIds);
+//     }, []);
+
+//     // Fetch friends from the database
+//     useEffect(() => {
+//         const fetchFriends = async () => {
+//             try {
+//                 setLoadingFriends(true);
+//                 const response = await axios.get('/api/friends');
+//                 setFriends(response.data);
+//             } catch (error) {
+//                 toast.error('Failed to load friends');
+//                 console.error('Error fetching friends:', error);
+//             } finally {
+//                 setLoadingFriends(false);
+//             }
+//         };
+
+//         fetchFriends();
+//     }, [user.id]);
+
+//     // Fetch all users for add friend modal
+//     useEffect(() => {
+//         const fetchAllUsers = async () => {
+//             try {
+//                 const response = await axios.get('/api/users');
+//                 const filteredUsers = response.data.filter(u => u._id !== user.id);
+
+//                 // Add default properties to each user
+//                 const usersWithDefaults = filteredUsers.map(user => ({
+//                     ...user,
+//                     profilePhoto: user.profilePhoto || '',
+//                     email: user.email || '',
+//                     phone: user.phone || '',
+//                     country: user.country || ''
+//                 }));
+
+//                 setAllUsers(usersWithDefaults);
+//             } catch (error) {
+//                 toast.error('Failed to load users');
+//                 console.error('Error fetching users:', error);
+//             }
+//         };
+
+//         fetchAllUsers();
+//     }, [user.id]);
+
+//     // Fetch friend requests
+//     useEffect(() => {
+//         const fetchFriendRequests = async () => {
+//             try {
+//                 const response = await axios.get('/api/friend-requests');
+//                 setFriendRequests(response.data);
+//             } catch (error) {
+//                 toast.error('Failed to load friend requests');
+//                 console.error('Error fetching friend requests:', error);
+//             }
+//         };
+
+//         fetchFriendRequests();
+//     }, [user.id]);
+
+//     // Fetch messages when a chat is selected
+//     useEffect(() => {
+//         const fetchMessages = async () => {
+//             if (!activeChat) return;
+
+//             try {
+//                 setLoadingMessages(true);
+//                 const response = await axios.get(`/api/messages/${activeChat._id}`);
+//                 setMessages(prev => ({
+//                     ...prev,
+//                     [activeChat._id]: response.data
+//                 }));
+//             } catch (error) {
+//                 toast.error('Failed to load messages');
+//                 console.error('Error fetching messages:', error);
+//             } finally {
+//                 setLoadingMessages(false);
+//             }
+//         };
+
+//         fetchMessages();
+//     }, [activeChat]);
+
+//     // Scroll to bottom when messages change
+//     useEffect(() => {
+//         scrollToBottom();
+//     }, [messages, activeChat]);
+    
+
+//     const scrollToBottom = () => {
+//         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+//     };
+
+//     const handleLogout = () => {
+//         onLogout();
+//         navigate("/");
+//     };
+
+//     const filteredFriends = friends.filter(friend =>
+//         `${friend.firstName} ${friend.lastName}`.toLowerCase().includes(searchTerm.toLowerCase())
+//     );
+
+//     const sendFriendRequest = async (userId) => {
+//         try {
+//             await axios.post('/api/friend-requests', { recipientId: userId });
+//             toast.success('Friend request sent');
+//             setAllUsers(prev => prev.map(u =>
+//                 u._id === userId ? { ...u, requestSent: true } : u
+//             ));
+//         } catch (error) {
+//             const message = error.response?.data?.message || 'Failed to send request';
+//             toast.error(message);
+//             console.error('Friend request error:', error.response?.data);
+//         }
+//     };
+
+//     const acceptFriendRequest = async (requestId) => {
+//         try {
+//             await axios.put(`/api/friend-requests/${requestId}`, { status: 'accepted' });
+//             setFriendRequests(prev => prev.filter(req => req._id !== requestId));
+//             toast.success('Friend request accepted');
+//         } catch (error) {
+//             toast.error('Failed to accept request');
+//             console.error('Accept error:', error);
+//         }
+//     };
+
+//     const rejectFriendRequest = async (requestId) => {
+//         try {
+//             await axios.put(`/api/friend-requests/${requestId}`, { status: 'rejected' });
+//             setFriendRequests(prev => prev.filter(req => req._id !== requestId));
+//             toast.info('Friend request rejected');
+//         } catch (error) {
+//             toast.error('Failed to reject request');
+//             console.error('Reject error:', error);
+//         }
+//     };
+
+//     const handleSendMessage = async () => {
+//         if (!message.trim() || !activeChat) return;
+
+//         const receiverId = activeChat._id;
+
+//         const newMessage = {
+//             text: message,
+//             sender: user.id,
+//             receiver: receiverId,
+//             createdAt: new Date()
+//         };
+
+//         try {
+//             setIsSending(true);
+//             const response = await axios.post('/api/messages', newMessage);
+
+//             setMessages(prev => ({
+//                 ...prev,
+//                 [receiverId]: [...(prev[receiverId] || []), response.data]
+//             }));
+
+//             setMessage('');
+//         } catch (error) {
+//             toast.error('Failed to send message');
+//             console.error('Error sending message:', error);
+//         } finally {
+//             setIsSending(false);
+//         }
+//     };
+
+//     const handleKeyPress = (e) => {
+//         if (e.key === 'Enter' && !e.shiftKey) {
+//             e.preventDefault();
+//             handleSendMessage();
+//         }
+//     };
+
+//     // Format time for messages
+//     const formatMessageTime = (dateString) => {
+//         const date = new Date(dateString);
+//         return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+//     };
+
+//     // Check if user is online
+//     const isUserOnline = (userId) => {
+//         return onlineUsers.has(userId);
+//     };
+
+//     // Toggle sidebar on mobile
+//     const toggleSidebar = () => {
+//         setShowSidebar(!showSidebar);
+//     };
+
+//     // View user details
+//     const viewUserDetails = (user) => {
+//         setSelectedUser(user);
+//     };
+
+//     const handleClose = () => {
+//         setShowNotifications(false);
+//         if (window.innerWidth <= 768) {
+//             document.body.style.overflow = 'auto';
+//         }
+//     };
+
+//     const handleThemeSelection = () => {
+//         try {
+//             if (activeChat && activeChat._id) {
+//                 const themeData = localStorage.getItem('chatThemes');
+//                 const themes = themeData ? JSON.parse(themeData) : {};
+
+//                 const newTheme = {
+//                     color: selectedColor || null,
+//                     wallpaper: selectedWallpaper || null
+//                 };
+
+//                 // Save to localStorage
+//                 themes[activeChat._id] = newTheme;
+//                 localStorage.setItem('chatThemes', JSON.stringify(themes));
+
+//                 // Update state to trigger re-render
+//                 setCurrentTheme(newTheme);
+
+//                 toast.success("Theme applied successfully");
+//             }
+//         } catch (error) {
+//             console.error("Error saving theme:", error);
+//             toast.error("Failed to apply theme");
+//         }
+//         setShowThemePopup(false);
+//     };
+
+//     // Add at the bottom of the file
+//     ChatPage.defaultProps = {
+//         setChatTheme: null,
+//         blockUser: () => { },
+//         clearChatHistory: () => { }
+//     };
+
+
+//   const blockUser = async (userId) => {
+//     try {
+//       const token = localStorage.getItem("airchat_token");
+//       if (!token) {
+//         throw new Error("Missing authentication token");
+//       }
+
+//       const response = await fetch(`${BACKEND_URL}/api/users/block/${userId}`, {
+//         method: "PUT",
+//         headers: {
+//           "Content-Type": "application/json",
+//           Authorization: `Bearer ${token}`,
+//         },
+//       });
+
+//       if (response.status === 401) {
+//         localStorage.removeItem("airchat_token");
+//         throw new Error("Session expired. Please login again");
+//       }
+      
+//       if (!response.ok) {
+//         const errorData = await response.json();
+//         throw new Error(errorData.message || "Block request failed");
+//       }
+
+//       return await response.json();
+//     } catch (error) {
+//       console.error("Blocking error:", error);
+//       throw error;
+//     }
+//   };
+
+//   const handleBlockUser = async () => {
+//     if (!activeChat?._id) {
+//       toast.error("No active chat selected");
+//       return;
+//     }
+
+//     try {
+//       const token = localStorage.getItem("airchat_token");
+//       if (!token) {
+//         toast.error("Please login first");
+//         return;
+//       }
+
+//       const result = await blockUser(activeChat._id);
+      
+//       const blockedUsers = JSON.parse(localStorage.getItem("blockedUsers") || "[]");
+//       if (!blockedUsers.includes(activeChat._id)) {
+//         blockedUsers.push(activeChat._id);
+//         localStorage.setItem("blockedUsers", JSON.stringify(blockedUsers));
+//       }
+
+//       toast.success(result.message);
+//       setShowMenu(false);
+//     } catch (err) {
+//       // Handle session expiration
+//       if (err.message === "Session expired. Please login again") {
+//         toast.error("Session expired. Please log in again");
+//         onLogout();  // Trigger logout flow
+//       } else {
+//         toast.error(err.message || "User blocking failed");
+//       }
+//     }
+//   };
+
+//   // ... rest of component ...
+// }
+
+//     useEffect(() => {
+//         const handleClickOutside = (e) => {
+//             if (menuRef.current && !menuRef.current.contains(e.target)) {
+//                 setShowMenu(false);
+//             }
+//             if (themeRef.current && !themeRef.current.contains(e.target)) {
+//                 setShowThemePopup(false);
+//             }
+//         };
+
+//         document.addEventListener('mousedown', handleClickOutside);
+//         return () => document.removeEventListener('mousedown', handleClickOutside);
+//     }, []);
+
+//     return (
+//         <div className="airchat-container">
+//             {/* Sidebar - Only show on large screens or when toggled on mobile */}
+//             {(showSidebar || window.innerWidth > 768) && (
+//                 <div className="sidebar">
+//                     <div className="sidebar-header">
+//                         <div className="app-logo">
+//                             <span className="logo-text">AirChat</span>
+//                         </div>
+//                         <div className="header-actions">
+//                             <button
+//                                 className="icon-btn notification-btn"
+//                                 onClick={() => setShowNotifications(!showNotifications)}
+//                                 title="Notifications"
+//                             >
+//                                 <FaBell />
+//                                 {friendRequests.length > 0 && (
+//                                     <span className="notification-badge">{friendRequests.length}</span>
+//                                 )}
+//                             </button>
+//                             <button
+//                                 className="icon-btn logout-btn"
+//                                 onClick={handleLogout}
+//                                 title="Logout"
+//                             >
+//                                 <FaSignOutAlt />
+//                             </button>
+//                         </div>
+//                     </div>
+
+//                     <div className="tabs">
+//                         <button
+//                             className={`tab-btn ${activeTab === 'chats' ? 'active' : ''}`}
+//                             onClick={() => setActiveTab('chats')}
+//                         >
+//                             CHATS
+//                         </button>
+//                         <button
+//                             className={`tab-btn ${activeTab === 'status' ? 'active' : ''}`}
+//                             onClick={() => setActiveTab('status')}
+//                         >
+//                             STATUS
+//                         </button>
+//                     </div>
+
+//                     <div className="chats-list">
+//                         {loadingFriends ? (
+//                             <div className="text-center py-4">
+//                                 <div className="spinner-border text-primary" role="status">
+//                                     <span className="visually-hidden">Loading...</span>
+//                                 </div>
+//                             </div>
+//                         ) : filteredFriends.length === 0 ? (
+//                             <div className="text-center py-4">
+//                                 <p>No friends found</p>
+//                             </div>
+//                         ) : (
+//                             filteredFriends.map(friend => {
+//                                 const lastMessage = messages[friend._id]?.[messages[friend._id]?.length - 1];
+//                                 const isOnline = isUserOnline(friend._id);
+
+//                                 return (
+//                                     <div
+//                                         key={friend._id}
+//                                         className={`chat-item ${activeChat?._id === friend._id ? 'active' : ''}`}
+//                                         onClick={() => {
+//                                             // Find full user details from allUsers
+//                                             const fullUser = allUsers.find(u => u._id === friend._id) || friend;
+//                                             setActiveChat({
+//                                                 ...fullUser,
+//                                                 phone: fullUser.phone || '',
+//                                                 email: fullUser.email || '',
+//                                                 country: fullUser.country || '',
+//                                                 profilePhoto: fullUser.profilePhoto || ''
+//                                             });
+//                                             if (window.innerWidth <= 768) setShowSidebar(false);
+//                                         }}
+//                                     >
+//                                         <div className="avatar">
+//                                             {friend.profilePhoto ? (
+//                                                 <img src={friend.profilePhoto} alt={`${friend.firstName} ${friend.lastName}`} />
+//                                             ) : (
+//                                                 <div className="avatar-placeholder">
+//                                                     {friend.firstName.charAt(0)}
+//                                                 </div>
+//                                             )}
+//                                             {isOnline && <span className="online-badge"></span>}
+//                                         </div>
+//                                         <div className="chat-info">
+//                                             <div className="chat-header">
+//                                                 <div className="user-name">{friend.firstName} {friend.lastName}</div>
+//                                                 <div className="last-seen">
+//                                                     {isOnline ? (
+//                                                         <span className="online-text">Online</span>
+//                                                     ) : (
+//                                                         <span>Offline</span>
+//                                                     )}
+//                                                 </div>
+//                                             </div>
+//                                             <div className="last-message-container">
+//                                                 {lastMessage ? (
+//                                                     <>
+//                                                         <div className="last-message-text">
+//                                                             {lastMessage.text}
+//                                                         </div>
+//                                                         <div className="last-message-time">
+//                                                             {formatMessageTime(lastMessage.createdAt)}
+//                                                         </div>
+//                                                     </>
+//                                                 ) : (
+//                                                     <div className="no-messages-text">No messages yet</div>
+//                                                 )}
+//                                             </div>
+//                                         </div>
+//                                     </div>
+//                                 );
+//                             })
+//                         )}
+//                     </div>
+
+//                     {/* Friend Options Toggle */}
+//                     <div className="friend-options-toggle">
+//                         <button
+//                             className="toggle-btn"
+//                             onClick={() => setShowFriendOptions(!showFriendOptions)}
+//                         >
+//                             <IoIosAdd />
+//                         </button>
+
+//                         {showFriendOptions && (
+//                             <div className="friend-options">
+//                                 <button
+//                                     className="friend-option-btn"
+//                                     onClick={() => {
+//                                         setShowAddFriendModal(true);
+//                                         setShowFriendOptions(false);
+//                                     }}
+//                                 >
+//                                     <FaUserPlus /> Add Friend
+//                                 </button>
+//                                 <button
+//                                     className="friend-option-btn"
+//                                     onClick={() => setShowFriendOptions(false)}
+//                                 >
+//                                     <MdArrowBack /> Back
+//                                 </button>
+//                             </div>
+//                         )}
+//                     </div>
+//                 </div>
+//             )}
+
+//             {/* Main Chat Area */}
+//             <div className={`main-chat-area ${!showSidebar && window.innerWidth <= 768 ? 'expanded' : ''}`}>
+//                 {activeChat ? (
+//                     <>
+//                         <div className="chat-header">
+//                             {/* Left section - Back button & Profile */}
+//                             <div className="header-left">
+//                                 {window.innerWidth <= 768 && (
+//                                     <button
+//                                         className="back-btn"
+//                                         onClick={() => {
+//                                             setShowSidebar(true);
+//                                             setActiveChat(null);
+//                                         }}
+//                                     >
+//                                         <MdArrowBack />
+//                                     </button>
+//                                 )}
+
+//                                 <div className="chat-partner">
+//                                     <div className="avatar">
+//                                         {activeChat.profilePhoto ? (
+//                                             <img
+//                                                 src={activeChat.profilePhoto}
+//                                                 alt={`${activeChat.firstName} ${activeChat.lastName}`}
+//                                             />
+//                                         ) : (
+//                                             <div className="avatar-placeholder">
+//                                                 {activeChat.firstName?.charAt(0)}
+//                                             </div>
+//                                         )}
+//                                         {isUserOnline(activeChat._id) && <span className="online-badge"></span>}
+//                                     </div>
+//                                     <div className="partner-info">
+//                                         <div className="partner-name">
+//                                             {activeChat.firstName} {activeChat.lastName}
+//                                         </div>
+//                                         <div className="partner-status">
+//                                             {isUserOnline(activeChat._id) ? (
+//                                                 <span className="online-text">Online</span>
+//                                             ) : (
+//                                                 <span>Offline</span>
+//                                             )}
+//                                         </div>
+//                                     </div>
+//                                 </div>
+//                             </div>
+
+//                             {/* Right section - Actions */}
+//                             <div className="header-actions">
+//                                 <div className="menu-container" ref={menuRef}>
+//                                     <button
+//                                         className="icon-btn"
+//                                         onClick={() => setShowMenu(!showMenu)}
+//                                     >
+//                                         <FaEllipsisV />
+//                                     </button>
+
+//                                     {showMenu && (
+//                                         <div className="menu-popup">
+//                                             <button onClick={() => {
+//                                                 setShowContactPopup(true);
+//                                                 setShowMenu(false);
+//                                             }}>
+//                                                 View Contact
+//                                             </button>
+//                                             <button onClick={() => {
+//                                                 setShowThemePopup(true);
+//                                                 setShowMenu(false);
+//                                             }}>
+//                                                 Chat Theme
+//                                             </button>
+//                                             <button onClick={handleBlockUser}>
+//                                                 Block User
+//                                             </button>
+//                                         </div>
+//                                     )}
+//                                 </div>
+//                             </div>
+
+//                             {/* Contact Popup */}
+//                             {showContactPopup && activeChat && (
+//                                 <div className="contact-popup">
+//                                     <div className="popup-content">
+//                                         <button
+//                                             className="close-popup"
+//                                             onClick={() => setShowContactPopup(false)}
+//                                         >
+//                                             <MdClose />
+//                                         </button>
+
+//                                         <div className="contact-header">
+//                                             <div className="contact-avatar">
+//                                                 {activeChat.profilePhoto ? (
+//                                                     <img
+//                                                         src={activeChat.profilePhoto}
+//                                                         alt={`${activeChat.firstName} ${activeChat.lastName}`}
+//                                                     />
+//                                                 ) : (
+//                                                     <div className="avatar-placeholder large">
+//                                                         {activeChat.firstName?.charAt(0)}
+//                                                     </div>
+//                                                 )}
+//                                             </div>
+//                                             <h3>{activeChat.firstName} {activeChat.lastName}</h3>
+//                                         </div>
+
+//                                         <div className="contact-details">
+//                                             <div className="detail-item">
+//                                                 <label>Email:</label>
+//                                                 <span>{activeChat.email || 'Not provided'}</span>
+//                                             </div>
+//                                             <div className="detail-item">
+//                                                 <label>Phone:</label>
+//                                                 <span>{activeChat.phoneNumber || 'Not provided'}</span>
+//                                             </div>
+//                                             <div className="detail-item">
+//                                                 <label>Country:</label>
+//                                                 <span>{activeChat.country || 'Not provided'}</span>
+//                                             </div>
+//                                             <div className="detail-item">
+//                                                 <label>Status:</label>
+//                                                 <span>
+//                                                     {isUserOnline(activeChat._id)
+//                                                         ? 'Online'
+//                                                         : 'Offline'}
+//                                                 </span>
+//                                             </div>
+//                                         </div>
+//                                     </div>
+//                                 </div>
+//                             )}
+
+//                             {/* Theme Popup */}
+//                             {showThemePopup && (
+//                                 <div className="theme-popup" ref={themeRef}>
+//                                     <div className="popup-content">
+//                                         <button
+//                                             className="close-popup"
+//                                             onClick={() => setShowThemePopup(false)}
+//                                         >
+//                                             <MdClose />
+//                                         </button>
+
+//                                         <h3>Chat Theme</h3>
+
+//                                         <div className="theme-tabs">
+//                                             <button
+//                                                 className={themeMode === 'color' ? 'active' : ''}
+//                                                 onClick={() => setThemeMode('color')}
+//                                             >
+//                                                 Color Theme
+//                                             </button>
+//                                             <button
+//                                                 className={themeMode === 'wallpaper' ? 'active' : ''}
+//                                                 onClick={() => setThemeMode('wallpaper')}
+//                                             >
+//                                                 Wallpaper
+//                                             </button>
+//                                         </div>
+
+//                                         <div className="theme-content">
+//                                             {themeMode === 'color' ? (
+//                                                 <div className="color-themes">
+//                                                     <h4>Select a color theme:</h4>
+//                                                     <div className="color-grid">
+//                                                         {['#f0f8ff', '#fff0f5', '#f5f5dc', '#e6e6fa', '#f0fff0', '#fffacd'].map(color => (
+//                                                             <div
+//                                                                 key={color}
+//                                                                 className={`color-option ${selectedColor === color ? 'selected' : ''}`}
+//                                                                 style={{ backgroundColor: color }}
+//                                                                 onClick={() => setSelectedColor(color)}
+//                                                             />
+//                                                         ))}
+//                                                     </div>
+//                                                 </div>
+//                                             ) : (
+//                                                 <div className="wallpaper-themes">
+//                                                     <h4>Select a wallpaper:</h4>
+//                                                     <input
+//                                                         type="file"
+//                                                         accept="image/*"
+//                                                         onChange={(e) => {
+//                                                             if (e.target.files[0]) {
+//                                                                 const reader = new FileReader();
+//                                                                 reader.onload = (event) => {
+//                                                                     setSelectedWallpaper(event.target.result);
+//                                                                 };
+//                                                                 reader.readAsDataURL(e.target.files[0]);
+//                                                             }
+//                                                         }}
+//                                                     />
+//                                                     {selectedWallpaper && (
+//                                                         <div className="wallpaper-preview">
+//                                                             <img src={selectedWallpaper} alt="Wallpaper preview" />
+//                                                         </div>
+//                                                     )}
+//                                                 </div>
+//                                             )}
+//                                         </div>
+
+//                                         <div className="theme-actions">
+//                                             <button
+//                                                 className="cancel-btn"
+//                                                 onClick={() => setShowThemePopup(false)}
+//                                             >
+//                                                 Cancel
+//                                             </button>
+//                                             <button
+//                                                 className="confirm-btn"
+//                                                 onClick={handleThemeSelection}
+//                                                 disabled={!selectedColor && !selectedWallpaper}
+//                                             >
+//                                                 Apply Theme
+//                                             </button>
+//                                         </div>
+//                                     </div>
+//                                 </div>
+//                             )}
+//                         </div>
+
+//                         <div className="chat-messages"
+//                             style={{
+//                                 backgroundColor: currentTheme.color || '#d9fdd3',
+//                                 backgroundImage: currentTheme.wallpaper
+//                                     ? `url(${currentTheme.wallpaper})`
+//                                     : 'none',
+//                                 backgroundSize: 'cover',
+//                                 backgroundPosition: 'center'
+//                             }}>
+//                             {loadingMessages ? (
+//                                 <div className="text-center py-4">
+//                                     <div className="spinner-border text-primary" role="status">
+//                                         <span className="visually-hidden">Loading messages...</span>
+//                                     </div>
+//                                 </div>
+//                             ) : messages[activeChat._id]?.length === 0 ? (
+//                                 <div className="no-messages">
+//                                     <p>No messages yet. Start the conversation!</p>
+//                                 </div>
+//                             ) : (
+//                                 messages[activeChat._id]?.map((msg) => (
+//                                     <div
+//                                         key={msg._id}
+//                                         className={`message ${msg.sender === user.id ? 'sent' : 'received'}`}
+//                                     >
+//                                         <div className="message-content">
+//                                             {msg.text}
+//                                         </div>
+//                                         <div className="message-meta">
+//                                             <div className="message-time">
+//                                                 {formatMessageTime(msg.createdAt)}
+//                                             </div>
+//                                         </div>
+//                                     </div>
+//                                 ))
+//                             )}
+//                             <div ref={messagesEndRef} />
+//                         </div>
+
+//                         <div className="message-input-area">
+//                             <button className="icon-btn">
+//                                 <FaSmile />
+//                             </button>
+//                             <button className="icon-btn">
+//                                 <FaPaperclip />
+//                             </button>
+//                             <div className="message-input-container">
+//                                 <textarea
+//                                     value={message}
+//                                     onChange={(e) => setMessage(e.target.value)}
+//                                     onKeyDown={handleKeyPress}
+//                                     placeholder="Type a message"
+//                                     rows={1}
+//                                 />
+//                             </div>
+//                             {message ? (
+//                                 <button
+//                                     className="send-btn"
+//                                     onClick={handleSendMessage}
+//                                     disabled={isSending}
+//                                 >
+//                                     {isSending ? (
+//                                         <div className="sending-spinner"></div>
+//                                     ) : (
+//                                         <IoIosSend />
+//                                     )}
+//                                 </button>
+//                             ) : (
+//                                 <button className="icon-btn">
+//                                     <FaMicrophone />
+//                                 </button>
+//                             )}
+//                         </div>
+//                     </>
+//                 ) : (
+//                     <div className="no-chat-selected">
+//                         <div className="welcome-container">
+//                             <div className="logo-large">
+//                                 <span className="logo-text">AirChat</span>
+//                             </div>
+//                             <h2>Welcome, {user.name}</h2>
+//                             <p>Select a chat to start messaging</p>
+//                             <p>Or start a new conversation</p>
+//                         </div>
+//                     </div>
+//                 )}
+//             </div>
+
+//             {/* Add Friend Modal */}
+//             {showAddFriendModal && (
+//                 <div className="modal-overlay">
+//                     <div className="add-friend-modal">
+//                         <div className="modal-header">
+//                             <h3>Add Friends</h3>
+//                             <button
+//                                 className="close-btn"
+//                                 onClick={() => setShowAddFriendModal(false)}
+//                             >
+//                                 <FaTimes />
+//                             </button>
+//                         </div>
+
+//                         <div className="modal-content">
+//                             {allUsers
+//                                 .filter(u =>
+//                                     !friends.some(f => f._id === u._id) &&
+//                                     !friendRequests.some(r => r.senderId === u._id)
+//                                 )
+//                                 .map(user => (
+//                                     <div key={user._id} className="user-item">
+//                                         <div className="user-avatar">
+//                                             {user.profilePhoto ? (
+//                                                 <img src={user.profilePhoto} alt={`${user.firstName} ${user.lastName}`} />
+//                                             ) : (
+//                                                 <div className="avatar-placeholder">
+//                                                     {user.firstName.charAt(0)}
+//                                                 </div>
+//                                             )}
+//                                         </div>
+//                                         <div className="user-info">
+//                                             <div className="user-name">{user.firstName} {user.lastName}</div>
+//                                             <div className="user-country">{user.country || 'Unknown'}</div>
+//                                         </div>
+//                                         <div className="user-actions">
+//                                             <button
+//                                                 className="view-btn"
+//                                                 onClick={() => viewUserDetails(user)}
+//                                             >
+//                                                 View
+//                                             </button>
+//                                             <button
+//                                                 className={`add-btn ${user.requestSent ? 'sent' : ''}`}
+//                                                 onClick={() => sendFriendRequest(user._id)}
+//                                                 disabled={user.requestSent}
+//                                             >
+//                                                 {user.requestSent ? 'Request Sent' : 'Add'}
+//                                             </button>
+//                                         </div>
+//                                     </div>
+//                                 ))}
+//                         </div>
+//                     </div>
+//                 </div>
+//             )}
+
+//             {/* User Detail Modal */}
+//             {selectedUser && (
+//                 <div className="modal-overlay">
+//                     <div className="user-detail-modal">
+//                         <div className="modal-header">
+//                             <h3>User Details</h3>
+//                             <button
+//                                 className="close-btn"
+//                                 onClick={() => setSelectedUser(null)}
+//                             >
+//                                 <FaTimes />
+//                             </button>
+//                         </div>
+
+//                         <div className="modal-content">
+//                             <div className="user-avatar-large">
+//                                 {selectedUser.profilePhoto ? (
+//                                     <img src={selectedUser.profilePhoto} alt={`${selectedUser.firstName} ${selectedUser.lastName}`} />
+//                                 ) : (
+//                                     <div className="avatar-placeholder large">
+//                                         {selectedUser.firstName.charAt(0)}
+//                                     </div>
+//                                 )}
+//                             </div>
+
+//                             <div className="user-details">
+//                                 <div className="detail-item">
+//                                     <span className="detail-label">First Name:</span>
+//                                     <span className="detail-value">{selectedUser.firstName}</span>
+//                                 </div>
+//                                 <div className="detail-item">
+//                                     <span className="detail-label">Last Name:</span>
+//                                     <span className="detail-value">{selectedUser.lastName}</span>
+//                                 </div>
+//                                 <div className="detail-item">
+//                                     <span className="detail-label">Country:</span>
+//                                     <span className="detail-value">{selectedUser.country || 'Unknown'}</span>
+//                                 </div>
+//                                 <div className="detail-item">
+//                                     <span className="detail-label">Email:</span>
+//                                     <span className="detail-value">{selectedUser.email}</span>
+//                                 </div>
+//                             </div>
+
+//                             <div className="modal-actions">
+//                                 <button
+//                                     className="close-detail-btn"
+//                                     onClick={() => setSelectedUser(null)}
+//                                 >
+//                                     Close
+//                                 </button>
+//                             </div>
+//                         </div>
+//                     </div>
+//                 </div>
+//             )}
+
+//             {/* Notifications Panel */}
+//             <div
+//                 className={`notifications-backdrop ${showNotifications ? 'active' : ''}`}
+//                 onClick={() => setShowNotifications(false)}
+//             />
+
+//             <div className={`notifications-panel ${showNotifications ? 'active' : ''}`}>
+//                 <div className="panel-header">
+//                     <h3>Friend Requests</h3>
+//                     <button
+//                         className="close-btn"
+//                         onClick={handleClose}
+//                     >
+//                         <FaTimes />
+//                     </button>
+//                 </div>
+
+//                 <div className="panel-content">
+//                     {friendRequests.length === 0 ? (
+//                         <div className="no-requests">
+//                             <p>No pending friend requests</p>
+//                         </div>
+//                     ) : (
+//                         friendRequests.map(request => (
+//                             <div key={request._id} className="request-item">
+//                                 <div className="request-main">
+//                                     <div className="request-avatar">
+//                                         {request.requester?.profilePhoto ? (
+//                                             <img
+//                                                 src={request.requester.profilePhoto}
+//                                                 alt={`${request.requester.firstName} ${request.requester.lastName}`}
+//                                             />
+//                                         ) : (
+//                                             <div className="avatar-placeholder">
+//                                                 {request.requester?.firstName?.charAt(0)}
+//                                             </div>
+//                                         )}
+//                                     </div>
+
+//                                     <div className="request-details">
+//                                         <div className="request-name">
+//                                             {request.requester?.firstName} {request.requester?.lastName}
+//                                         </div>
+//                                         <div className="request-message">
+//                                             Wants to be your friend
+//                                         </div>
+//                                     </div>
+//                                 </div>
+
+//                                 <div className="request-actions">
+//                                     <button
+//                                         className="accept-btn"
+//                                         onClick={() => acceptFriendRequest(request._id)}
+//                                     >
+//                                         Accept
+//                                     </button>
+//                                     <button
+//                                         className="reject-btn"
+//                                         onClick={() => rejectFriendRequest(request._id)}
+//                                     >
+//                                         Reject
+//                                     </button>
+//                                 </div>
+//                             </div>
+//                         ))
+//                     )}
+//                 </div>
+//             </div>
+//         </div>
+//     );
+// };
+
+
+// ChatPage.defaultProps = {
+//     setChatTheme: () => {},
+//     blockUser: () => console.warn("blockUser function not provided"),
+//     clearChatHistory: () => console.warn("clearChatHistory function not provided")
+// };
+
+// export default ChatPage;
+
+
+
+// import React, { useState, useEffect, useRef } from 'react';
+// import { useNavigate } from 'react-router-dom';
+// import {
+//     FaSearch, FaEllipsisV, FaPaperclip, FaMicrophone, FaSmile,
+//     FaSignOutAlt, FaCheck, FaClock, FaTimes, FaArrowUp, FaArrowDown,
+//     FaPalette, FaImage, FaBan, FaTrash, FaUserPlus, FaBell, FaUserFriends
+// } from 'react-icons/fa';
+// import { IoIosSend, IoIosAdd } from 'react-icons/io';
+// import { MdArrowBack, MdSearch, MdClose } from 'react-icons/md';
+// import { toast } from 'react-toastify';
+// import axios from 'axios';
+// import './ChatPage.css';
+
+// const ChatPage = ({ user, token , onLogout }) => {
+//     const navigate = useNavigate();
+//     const [activeTab, setActiveTab] = useState('chats');
+//     const [friends, setFriends] = useState([]);
+//     const [allUsers, setAllUsers] = useState([]);
+//     const [activeChat, setActiveChat] = useState(null);
+//     const [message, setMessage] = useState('');
+//     const [messages, setMessages] = useState({});
+//     const [searchTerm, setSearchTerm] = useState('');
+//     const [loadingFriends, setLoadingFriends] = useState(true);
+//     const [loadingMessages, setLoadingMessages] = useState(false);
+//     const [isSending, setIsSending] = useState(false);
+//     const [onlineUsers, setOnlineUsers] = useState(new Set());
+//     const messagesEndRef = useRef(null);
+//     const [showAddFriendModal, setShowAddFriendModal] = useState(false);
+//     const [friendRequests, setFriendRequests] = useState([]);
+//     const [showNotifications, setShowNotifications] = useState(false);
+//     const [showSidebar, setShowSidebar] = useState(true);
+//     const [showFriendOptions, setShowFriendOptions] = useState(false);
+//     const [selectedUser, setSelectedUser] = useState(null);
+//     const [isMobilePanelOpen, setIsMobilePanelOpen] = useState(false);
+//     const [showSearch, setShowSearch] = useState(false);
+//     const [searchQuery, setSearchQuery] = useState('');
+//     const [showMenu, setShowMenu] = useState(false);
+//     const [showContactPopup, setShowContactPopup] = useState(false);
+//     const [showThemePopup, setShowThemePopup] = useState(false);
+//     const [themeMode, setThemeMode] = useState('default');
+//     const [selectedColor, setSelectedColor] = useState(null);
+//     const [selectedWallpaper, setSelectedWallpaper] = useState(null);
+//     const menuRef = useRef(null);
+//     const themeRef = useRef(null);
+
+//     const BACKEND_URL = "http://localhost:5000";
+
+//     const [currentTheme, setCurrentTheme] = useState({});
+
+//     useEffect(() => {
+//         if (activeChat?._id) {
+//             const themeData = localStorage.getItem('chatThemes');
+//             const themes = themeData ? JSON.parse(themeData) : {};
+//             setCurrentTheme(themes[activeChat._id] || {});
+//         } else {
+//             setCurrentTheme({});
+//         }
+//     }, [activeChat]);
+
+//     // Handle mobile animations
+//     useEffect(() => {
+//         if (showNotifications) {
+//             setTimeout(() => setIsMobilePanelOpen(true), 10);
+//         } else {
+//             setIsMobilePanelOpen(false);
+//         }
+//     }, [showNotifications]);
+
+//     useEffect(() => {
+//         if (showNotifications && window.innerWidth <= 768) {
+//             document.body.style.overflow = 'hidden';
+//         } else {
+//             document.body.style.overflow = 'auto';
+//         }
+
+//         return () => {
+//             document.body.style.overflow = 'auto';
+//         };
+//     }, [showNotifications]);
+
+//     // Simulate online status
+//     useEffect(() => {
+//         const onlineUserIds = new Set(['1', '3', '8']);
+//         setOnlineUsers(onlineUserIds);
+//     }, []);
+
+//     // Fetch friends from the database
+//     useEffect(() => {
+//   const fetchFriends = async () => {
+//     try {
+//       setLoadingFriends(true);
+//       const response = await axios.get('/api/friends', {
+//         headers: {
+//           Authorization: `Bearer ${token}`
+//         }
+//       });
+//       setFriends(response.data);
+//     } catch (error) {
+//       toast.error('Failed to load friends');
+//       console.error('Error fetching friends:', error);
+//     } finally {
+//       setLoadingFriends(false);
+//     }
+//   };
+
+//         fetchFriends();
+//     }, [user.id]);
+
+//     // Fetch all users for add friend modal
+//     useEffect(() => {
+//         const fetchAllUsers = async () => {
+//             try {
+//                 const response = await axios.get('/api/users');
+//                 const filteredUsers = response.data.filter(u => u._id !== user.id);
+
+//                 // Add default properties to each user
+//                 const usersWithDefaults = filteredUsers.map(user => ({
+//                     ...user,
+//                     profilePhoto: user.profilePhoto || '',
+//                     email: user.email || '',
+//                     phone: user.phone || '',
+//                     country: user.country || ''
+//                 }));
+
+//                 setAllUsers(usersWithDefaults);
+//             } catch (error) {
+//                 toast.error('Failed to load users');
+//                 console.error('Error fetching users:', error);
+//             }
+//         };
+
+//         fetchAllUsers();
+//     }, [user.id]);
+
+//     // Fetch friend requests
+//     useEffect(() => {
+//         const fetchFriendRequests = async () => {
+//             try {
+//                 const response = await axios.get('/api/friend-requests');
+//                 setFriendRequests(response.data);
+//             } catch (error) {
+//                 toast.error('Failed to load friend requests');
+//                 console.error('Error fetching friend requests:', error);
+//             }
+//         };
+
+//         fetchFriendRequests();
+//     }, [user.id]);
+
+//     // Fetch messages when a chat is selected
+//     useEffect(() => {
+//         const fetchMessages = async () => {
+//             if (!activeChat) return;
+
+//             try {
+//                 setLoadingMessages(true);
+//                 const response = await axios.get(`/api/messages/${activeChat._id}`);
+//                 setMessages(prev => ({
+//                     ...prev,
+//                     [activeChat._id]: response.data
+//                 }));
+//             } catch (error) {
+//                 toast.error('Failed to load messages');
+//                 console.error('Error fetching messages:', error);
+//             } finally {
+//                 setLoadingMessages(false);
+//             }
+//         };
+
+//         fetchMessages();
+//     }, [activeChat]);
+
+//     // Scroll to bottom when messages change
+//     useEffect(() => {
+//         scrollToBottom();
+//     }, [messages, activeChat]);
+    
+
+//     const scrollToBottom = () => {
+//         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+//     };
+
+//     const handleLogout = () => {
+//         onLogout();
+//         navigate("/");
+//     };
+
+//     const filteredFriends = friends.filter(friend =>
+//         `${friend.firstName} ${friend.lastName}`.toLowerCase().includes(searchTerm.toLowerCase())
+//     );
+
+//     const sendFriendRequest = async (userId) => {
+//         try {
+//             await axios.post('/api/friend-requests', { recipientId: userId });
+//             toast.success('Friend request sent');
+//             setAllUsers(prev => prev.map(u =>
+//                 u._id === userId ? { ...u, requestSent: true } : u
+//             ));
+//         } catch (error) {
+//             const message = error.response?.data?.message || 'Failed to send request';
+//             toast.error(message);
+//             console.error('Friend request error:', error.response?.data);
+//         }
+//     };
+
+//     const acceptFriendRequest = async (requestId) => {
+//         try {
+//             await axios.put(`/api/friend-requests/${requestId}`, { status: 'accepted' });
+//             setFriendRequests(prev => prev.filter(req => req._id !== requestId));
+//             toast.success('Friend request accepted');
+//         } catch (error) {
+//             toast.error('Failed to accept request');
+//             console.error('Accept error:', error);
+//         }
+//     };
+
+//     const rejectFriendRequest = async (requestId) => {
+//         try {
+//             await axios.put(`/api/friend-requests/${requestId}`, { status: 'rejected' });
+//             setFriendRequests(prev => prev.filter(req => req._id !== requestId));
+//             toast.info('Friend request rejected');
+//         } catch (error) {
+//             toast.error('Failed to reject request');
+//             console.error('Reject error:', error);
+//         }
+//     };
+
+//     const handleSendMessage = async () => {
+//         if (!message.trim() || !activeChat) return;
+
+//         const receiverId = activeChat._id;
+
+//         const newMessage = {
+//             text: message,
+//             sender: user.id,
+//             receiver: receiverId,
+//             createdAt: new Date()
+//         };
+
+//         try {
+//             setIsSending(true);
+//             const response = await axios.post('/api/messages', newMessage);
+
+//             setMessages(prev => ({
+//                 ...prev,
+//                 [receiverId]: [...(prev[receiverId] || []), response.data]
+//             }));
+
+//             setMessage('');
+//         } catch (error) {
+//             toast.error('Failed to send message');
+//             console.error('Error sending message:', error);
+//         } finally {
+//             setIsSending(false);
+//         }
+//     };
+
+//     const handleKeyPress = (e) => {
+//         if (e.key === 'Enter' && !e.shiftKey) {
+//             e.preventDefault();
+//             handleSendMessage();
+//         }
+//     };
+
+//     // Format time for messages
+//     const formatMessageTime = (dateString) => {
+//         const date = new Date(dateString);
+//         return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+//     };
+
+//     // Check if user is online
+//     const isUserOnline = (userId) => {
+//         return onlineUsers.has(userId);
+//     };
+
+//     // Toggle sidebar on mobile
+//     const toggleSidebar = () => {
+//         setShowSidebar(!showSidebar);
+//     };
+
+//     // View user details
+//     const viewUserDetails = (user) => {
+//         setSelectedUser(user);
+//     };
+
+//     const handleClose = () => {
+//         setShowNotifications(false);
+//         if (window.innerWidth <= 768) {
+//             document.body.style.overflow = 'auto';
+//         }
+//     };
+
+//     const handleThemeSelection = () => {
+//         try {
+//             if (activeChat && activeChat._id) {
+//                 const themeData = localStorage.getItem('chatThemes');
+//                 const themes = themeData ? JSON.parse(themeData) : {};
+
+//                 const newTheme = {
+//                     color: selectedColor || null,
+//                     wallpaper: selectedWallpaper || null
+//                 };
+
+//                 // Save to localStorage
+//                 themes[activeChat._id] = newTheme;
+//                 localStorage.setItem('chatThemes', JSON.stringify(themes));
+
+//                 // Update state to trigger re-render
+//                 setCurrentTheme(newTheme);
+
+//                 toast.success("Theme applied successfully");
+//             }
+//         } catch (error) {
+//             console.error("Error saving theme:", error);
+//             toast.error("Failed to apply theme");
+//         }
+//         setShowThemePopup(false);
+//     };
+
+//     const blockUser = async (userId) => {
+//         try {
+//             const token = localStorage.getItem("airchat_token");
+//             if (!token) {
+//                 throw new Error("Missing authentication token");
+//             }
+
+//             const response = await fetch(`${BACKEND_URL}/api/users/block/${userId}`, {
+//                 method: "PUT",
+//                 headers: {
+//                     "Content-Type": "application/json",
+//                     Authorization: `Bearer ${token}`,
+//                 },
+//             });
+
+//             if (response.status === 401) {
+//                 localStorage.removeItem("airchat_token");
+//                 throw new Error("Session expired. Please login again");
+//             }
+            
+//             if (!response.ok) {
+//                 const errorData = await response.json();
+//                 throw new Error(errorData.message || "Block request failed");
+//             }
+
+//             return await response.json();
+//         } catch (error) {
+//             console.error("Blocking error:", error);
+//             throw error;
+//         }
+//     };
+
+//     const handleBlockUser = async () => {
+//         if (!activeChat?._id) {
+//             toast.error("No active chat selected");
+//             return;
+//         }
+
+//         try {
+//             const token = localStorage.getItem("airchat_token");
+//             if (!token) {
+//                 toast.error("Please login first");
+//                 return;
+//             }
+
+//             const result = await blockUser(activeChat._id);
+            
+//             const blockedUsers = JSON.parse(localStorage.getItem("blockedUsers") || "[]");
+//             if (!blockedUsers.includes(activeChat._id)) {
+//                 blockedUsers.push(activeChat._id);
+//                 localStorage.setItem("blockedUsers", JSON.stringify(blockedUsers));
+//             }
+
+//             toast.success(result.message);
+//             setShowMenu(false);
+//         } catch (err) {
+//             // Handle session expiration
+//             if (err.message === "Session expired. Please login again") {
+//                 toast.error("Session expired. Please log in again");
+//                 onLogout();  // Trigger logout flow
+//             } else {
+//                 toast.error(err.message || "User blocking failed");
+//             }
+//         }
+//     };
+
+//     useEffect(() => {
+//         const handleClickOutside = (e) => {
+//             if (menuRef.current && !menuRef.current.contains(e.target)) {
+//                 setShowMenu(false);
+//             }
+//             if (themeRef.current && !themeRef.current.contains(e.target)) {
+//                 setShowThemePopup(false);
+//             }
+//         };
+
+//         document.addEventListener('mousedown', handleClickOutside);
+//         return () => document.removeEventListener('mousedown', handleClickOutside);
+//     }, []);
+
+//     return (
+//         <div className="airchat-container">
+//             {/* Sidebar - Only show on large screens or when toggled on mobile */}
+//             {(showSidebar || window.innerWidth > 768) && (
+//                 <div className="sidebar">
+//                     <div className="sidebar-header">
+//                         <div className="app-logo">
+//                             <span className="logo-text">AirChat</span>
+//                         </div>
+//                         <div className="header-actions">
+//                             <button
+//                                 className="icon-btn notification-btn"
+//                                 onClick={() => setShowNotifications(!showNotifications)}
+//                                 title="Notifications"
+//                             >
+//                                 <FaBell />
+//                                 {friendRequests.length > 0 && (
+//                                     <span className="notification-badge">{friendRequests.length}</span>
+//                                 )}
+//                             </button>
+//                             <button
+//                                 className="icon-btn logout-btn"
+//                                 onClick={handleLogout}
+//                                 title="Logout"
+//                             >
+//                                 <FaSignOutAlt />
+//                             </button>
+//                         </div>
+//                     </div>
+
+//                     <div className="tabs">
+//                         <button
+//                             className={`tab-btn ${activeTab === 'chats' ? 'active' : ''}`}
+//                             onClick={() => setActiveTab('chats')}
+//                         >
+//                             CHATS
+//                         </button>
+//                         <button
+//                             className={`tab-btn ${activeTab === 'status' ? 'active' : ''}`}
+//                             onClick={() => setActiveTab('status')}
+//                         >
+//                             STATUS
+//                         </button>
+//                     </div>
+
+//                     <div className="chats-list">
+//                         {loadingFriends ? (
+//                             <div className="text-center py-4">
+//                                 <div className="spinner-border text-primary" role="status">
+//                                     <span className="visually-hidden">Loading...</span>
+//                                 </div>
+//                             </div>
+//                         ) : filteredFriends.length === 0 ? (
+//                             <div className="text-center py-4">
+//                                 <p>No friends found</p>
+//                             </div>
+//                         ) : (
+//                             filteredFriends.map(friend => {
+//                                 const lastMessage = messages[friend._id]?.[messages[friend._id]?.length - 1];
+//                                 const isOnline = isUserOnline(friend._id);
+
+//                                 return (
+//                                     <div
+//                                         key={friend._id}
+//                                         className={`chat-item ${activeChat?._id === friend._id ? 'active' : ''}`}
+//                                         onClick={() => {
+//                                             // Find full user details from allUsers
+//                                             const fullUser = allUsers.find(u => u._id === friend._id) || friend;
+//                                             setActiveChat({
+//                                                 ...fullUser,
+//                                                 phone: fullUser.phone || '',
+//                                                 email: fullUser.email || '',
+//                                                 country: fullUser.country || '',
+//                                                 profilePhoto: fullUser.profilePhoto || ''
+//                                             });
+//                                             if (window.innerWidth <= 768) setShowSidebar(false);
+//                                         }}
+//                                     >
+//                                         <div className="avatar">
+//                                             {friend.profilePhoto ? (
+//                                                 <img src={friend.profilePhoto} alt={`${friend.firstName} ${friend.lastName}`} />
+//                                             ) : (
+//                                                 <div className="avatar-placeholder">
+//                                                     {friend.firstName.charAt(0)}
+//                                                 </div>
+//                                             )}
+//                                             {isOnline && <span className="online-badge"></span>}
+//                                         </div>
+//                                         <div className="chat-info">
+//                                             <div className="chat-header">
+//                                                 <div className="user-name">{friend.firstName} {friend.lastName}</div>
+//                                                 <div className="last-seen">
+//                                                     {isOnline ? (
+//                                                         <span className="online-text">Online</span>
+//                                                     ) : (
+//                                                         <span>Offline</span>
+//                                                     )}
+//                                                 </div>
+//                                             </div>
+//                                             <div className="last-message-container">
+//                                                 {lastMessage ? (
+//                                                     <>
+//                                                         <div className="last-message-text">
+//                                                             {lastMessage.text}
+//                                                         </div>
+//                                                         <div className="last-message-time">
+//                                                             {formatMessageTime(lastMessage.createdAt)}
+//                                                         </div>
+//                                                     </>
+//                                                 ) : (
+//                                                     <div className="no-messages-text">No messages yet</div>
+//                                                 )}
+//                                             </div>
+//                                         </div>
+//                                     </div>
+//                                 );
+//                             })
+//                         )}
+//                     </div>
+
+//                     {/* Friend Options Toggle */}
+//                     <div className="friend-options-toggle">
+//                         <button
+//                             className="toggle-btn"
+//                             onClick={() => setShowFriendOptions(!showFriendOptions)}
+//                         >
+//                             <IoIosAdd />
+//                         </button>
+
+//                         {showFriendOptions && (
+//                             <div className="friend-options">
+//                                 <button
+//                                     className="friend-option-btn"
+//                                     onClick={() => {
+//                                         setShowAddFriendModal(true);
+//                                         setShowFriendOptions(false);
+//                                     }}
+//                                 >
+//                                     <FaUserPlus /> Add Friend
+//                                 </button>
+//                                 <button
+//                                     className="friend-option-btn"
+//                                     onClick={() => setShowFriendOptions(false)}
+//                                 >
+//                                     <MdArrowBack /> Back
+//                                 </button>
+//                             </div>
+//                         )}
+//                     </div>
+//                 </div>
+//             )}
+
+//             {/* Main Chat Area */}
+//             <div className={`main-chat-area ${!showSidebar && window.innerWidth <= 768 ? 'expanded' : ''}`}>
+//                 {activeChat ? (
+//                     <>
+//                         <div className="chat-header">
+//                             {/* Left section - Back button & Profile */}
+//                             <div className="header-left">
+//                                 {window.innerWidth <= 768 && (
+//                                     <button
+//                                         className="back-btn"
+//                                         onClick={() => {
+//                                             setShowSidebar(true);
+//                                             setActiveChat(null);
+//                                         }}
+//                                     >
+//                                         <MdArrowBack />
+//                                     </button>
+//                                 )}
+
+//                                 <div className="chat-partner">
+//                                     <div className="avatar">
+//                                         {activeChat.profilePhoto ? (
+//                                             <img
+//                                                 src={activeChat.profilePhoto}
+//                                                 alt={`${activeChat.firstName} ${activeChat.lastName}`}
+//                                             />
+//                                         ) : (
+//                                             <div className="avatar-placeholder">
+//                                                 {activeChat.firstName?.charAt(0)}
+//                                             </div>
+//                                         )}
+//                                         {isUserOnline(activeChat._id) && <span className="online-badge"></span>}
+//                                     </div>
+//                                     <div className="partner-info">
+//                                         <div className="partner-name">
+//                                             {activeChat.firstName} {activeChat.lastName}
+//                                         </div>
+//                                         <div className="partner-status">
+//                                             {isUserOnline(activeChat._id) ? (
+//                                                 <span className="online-text">Online</span>
+//                                             ) : (
+//                                                 <span>Offline</span>
+//                                             )}
+//                                         </div>
+//                                     </div>
+//                                 </div>
+//                             </div>
+
+//                             {/* Right section - Actions */}
+//                             <div className="header-actions">
+//                                 <div className="menu-container" ref={menuRef}>
+//                                     <button
+//                                         className="icon-btn"
+//                                         onClick={() => setShowMenu(!showMenu)}
+//                                     >
+//                                         <FaEllipsisV />
+//                                     </button>
+
+//                                     {showMenu && (
+//                                         <div className="menu-popup">
+//                                             <button onClick={() => {
+//                                                 setShowContactPopup(true);
+//                                                 setShowMenu(false);
+//                                             }}>
+//                                                 View Contact
+//                                             </button>
+//                                             <button onClick={() => {
+//                                                 setShowThemePopup(true);
+//                                                 setShowMenu(false);
+//                                             }}>
+//                                                 Chat Theme
+//                                             </button>
+//                                             <button onClick={handleBlockUser}>
+//                                                 Block User
+//                                             </button>
+//                                         </div>
+//                                     )}
+//                                 </div>
+//                             </div>
+
+//                             {/* Contact Popup */}
+//                             {showContactPopup && activeChat && (
+//                                 <div className="contact-popup">
+//                                     <div className="popup-content">
+//                                         <button
+//                                             className="close-popup"
+//                                             onClick={() => setShowContactPopup(false)}
+//                                         >
+//                                             <MdClose />
+//                                         </button>
+
+//                                         <div className="contact-header">
+//                                             <div className="contact-avatar">
+//                                                 {activeChat.profilePhoto ? (
+//                                                     <img
+//                                                         src={activeChat.profilePhoto}
+//                                                         alt={`${activeChat.firstName} ${activeChat.lastName}`}
+//                                                     />
+//                                                 ) : (
+//                                                     <div className="avatar-placeholder large">
+//                                                         {activeChat.firstName?.charAt(0)}
+//                                                     </div>
+//                                                 )}
+//                                             </div>
+//                                             <h3>{activeChat.firstName} {activeChat.lastName}</h3>
+//                                         </div>
+
+//                                         <div className="contact-details">
+//                                             <div className="detail-item">
+//                                                 <label>Email:</label>
+//                                                 <span>{activeChat.email || 'Not provided'}</span>
+//                                             </div>
+//                                             <div className="detail-item">
+//                                                 <label>Phone:</label>
+//                                                 <span>{activeChat.phoneNumber || 'Not provided'}</span>
+//                                             </div>
+//                                             <div className="detail-item">
+//                                                 <label>Country:</label>
+//                                                 <span>{activeChat.country || 'Not provided'}</span>
+//                                             </div>
+//                                             <div className="detail-item">
+//                                                 <label>Status:</label>
+//                                                 <span>
+//                                                     {isUserOnline(activeChat._id)
+//                                                         ? 'Online'
+//                                                         : 'Offline'}
+//                                                 </span>
+//                                             </div>
+//                                         </div>
+//                                     </div>
+//                                 </div>
+//                             )}
+
+//                             {/* Theme Popup */}
+//                             {showThemePopup && (
+//                                 <div className="theme-popup" ref={themeRef}>
+//                                     <div className="popup-content">
+//                                         <button
+//                                             className="close-popup"
+//                                             onClick={() => setShowThemePopup(false)}
+//                                         >
+//                                             <MdClose />
+//                                         </button>
+
+//                                         <h3>Chat Theme</h3>
+
+//                                         <div className="theme-tabs">
+//                                             <button
+//                                                 className={themeMode === 'color' ? 'active' : ''}
+//                                                 onClick={() => setThemeMode('color')}
+//                                             >
+//                                                 Color Theme
+//                                             </button>
+//                                             <button
+//                                                 className={themeMode === 'wallpaper' ? 'active' : ''}
+//                                                 onClick={() => setThemeMode('wallpaper')}
+//                                             >
+//                                                 Wallpaper
+//                                             </button>
+//                                         </div>
+
+//                                         <div className="theme-content">
+//                                             {themeMode === 'color' ? (
+//                                                 <div className="color-themes">
+//                                                     <h4>Select a color theme:</h4>
+//                                                     <div className="color-grid">
+//                                                         {['#f0f8ff', '#fff0f5', '#f5f5dc', '#e6e6fa', '#f0fff0', '#fffacd'].map(color => (
+//                                                             <div
+//                                                                 key={color}
+//                                                                 className={`color-option ${selectedColor === color ? 'selected' : ''}`}
+//                                                                 style={{ backgroundColor: color }}
+//                                                                 onClick={() => setSelectedColor(color)}
+//                                                             />
+//                                                         ))}
+//                                                     </div>
+//                                                 </div>
+//                                             ) : (
+//                                                 <div className="wallpaper-themes">
+//                                                     <h4>Select a wallpaper:</h4>
+//                                                     <input
+//                                                         type="file"
+//                                                         accept="image/*"
+//                                                         onChange={(e) => {
+//                                                             if (e.target.files[0]) {
+//                                                                 const reader = new FileReader();
+//                                                                 reader.onload = (event) => {
+//                                                                     setSelectedWallpaper(event.target.result);
+//                                                                 };
+//                                                                 reader.readAsDataURL(e.target.files[0]);
+//                                                             }
+//                                                         }}
+//                                                     />
+//                                                     {selectedWallpaper && (
+//                                                         <div className="wallpaper-preview">
+//                                                             <img src={selectedWallpaper} alt="Wallpaper preview" />
+//                                                         </div>
+//                                                     )}
+//                                                 </div>
+//                                             )}
+//                                         </div>
+
+//                                         <div className="theme-actions">
+//                                             <button
+//                                                 className="cancel-btn"
+//                                                 onClick={() => setShowThemePopup(false)}
+//                                             >
+//                                                 Cancel
+//                                             </button>
+//                                             <button
+//                                                 className="confirm-btn"
+//                                                 onClick={handleThemeSelection}
+//                                                 disabled={!selectedColor && !selectedWallpaper}
+//                                             >
+//                                                 Apply Theme
+//                                             </button>
+//                                         </div>
+//                                     </div>
+//                                 </div>
+//                             )}
+//                         </div>
+
+//                         <div className="chat-messages"
+//                             style={{
+//                                 backgroundColor: currentTheme.color || '#d9fdd3',
+//                                 backgroundImage: currentTheme.wallpaper
+//                                     ? `url(${currentTheme.wallpaper})`
+//                                     : 'none',
+//                                 backgroundSize: 'cover',
+//                                 backgroundPosition: 'center'
+//                             }}>
+//                             {loadingMessages ? (
+//                                 <div className="text-center py-4">
+//                                     <div className="spinner-border text-primary" role="status">
+//                                         <span className="visually-hidden">Loading messages...</span>
+//                                     </div>
+//                                 </div>
+//                             ) : messages[activeChat._id]?.length === 0 ? (
+//                                 <div className="no-messages">
+//                                     <p>No messages yet. Start the conversation!</p>
+//                                 </div>
+//                             ) : (
+//                                 messages[activeChat._id]?.map((msg) => (
+//                                     <div
+//                                         key={msg._id}
+//                                         className={`message ${msg.sender === user.id ? 'sent' : 'received'}`}
+//                                     >
+//                                         <div className="message-content">
+//                                             {msg.text}
+//                                         </div>
+//                                         <div className="message-meta">
+//                                             <div className="message-time">
+//                                                 {formatMessageTime(msg.createdAt)}
+//                                             </div>
+//                                         </div>
+//                                     </div>
+//                                 ))
+//                             )}
+//                             <div ref={messagesEndRef} />
+//                         </div>
+
+//                         <div className="message-input-area">
+//                             <button className="icon-btn">
+//                                 <FaSmile />
+//                             </button>
+//                             <button className="icon-btn">
+//                                 <FaPaperclip />
+//                             </button>
+//                             <div className="message-input-container">
+//                                 <textarea
+//                                     value={message}
+//                                     onChange={(e) => setMessage(e.target.value)}
+//                                     onKeyDown={handleKeyPress}
+//                                     placeholder="Type a message"
+//                                     rows={1}
+//                                 />
+//                             </div>
+//                             {message ? (
+//                                 <button
+//                                     className="send-btn"
+//                                     onClick={handleSendMessage}
+//                                     disabled={isSending}
+//                                 >
+//                                     {isSending ? (
+//                                         <div className="sending-spinner"></div>
+//                                     ) : (
+//                                         <IoIosSend />
+//                                     )}
+//                                 </button>
+//                             ) : (
+//                                 <button className="icon-btn">
+//                                     <FaMicrophone />
+//                                 </button>
+//                             )}
+//                         </div>
+//                     </>
+//                 ) : (
+//                     <div className="no-chat-selected">
+//                         <div className="welcome-container">
+//                             <div className="logo-large">
+//                                 <span className="logo-text">AirChat</span>
+//                             </div>
+//                             <h2>Welcome, {user.name}</h2>
+//                             <p>Select a chat to start messaging</p>
+//                             <p>Or start a new conversation</p>
+//                         </div>
+//                     </div>
+//                 )}
+//             </div>
+
+//             {/* Add Friend Modal */}
+//             {showAddFriendModal && (
+//                 <div className="modal-overlay">
+//                     <div className="add-friend-modal">
+//                         <div className="modal-header">
+//                             <h3>Add Friends</h3>
+//                             <button
+//                                 className="close-btn"
+//                                 onClick={() => setShowAddFriendModal(false)}
+//                             >
+//                                 <FaTimes />
+//                             </button>
+//                         </div>
+
+//                         <div className="modal-content">
+//                             {allUsers
+//                                 .filter(u =>
+//                                     !friends.some(f => f._id === u._id) &&
+//                                     !friendRequests.some(r => r.senderId === u._id)
+//                                 )
+//                                 .map(user => (
+//                                     <div key={user._id} className="user-item">
+//                                         <div className="user-avatar">
+//                                             {user.profilePhoto ? (
+//                                                 <img src={user.profilePhoto} alt={`${user.firstName} ${user.lastName}`} />
+//                                             ) : (
+//                                                 <div className="avatar-placeholder">
+//                                                     {user.firstName.charAt(0)}
+//                                                 </div>
+//                                             )}
+//                                         </div>
+//                                         <div className="user-info">
+//                                             <div className="user-name">{user.firstName} {user.lastName}</div>
+//                                             <div className="user-country">{user.country || 'Unknown'}</div>
+//                                         </div>
+//                                         <div className="user-actions">
+//                                             <button
+//                                                 className="view-btn"
+//                                                 onClick={() => viewUserDetails(user)}
+//                                             >
+//                                                 View
+//                                             </button>
+//                                             <button
+//                                                 className={`add-btn ${user.requestSent ? 'sent' : ''}`}
+//                                                 onClick={() => sendFriendRequest(user._id)}
+//                                                 disabled={user.requestSent}
+//                                             >
+//                                                 {user.requestSent ? 'Request Sent' : 'Add'}
+//                                             </button>
+//                                         </div>
+//                                     </div>
+//                                 ))}
+//                         </div>
+//                     </div>
+//                 </div>
+//             )}
+
+//             {/* User Detail Modal */}
+//             {selectedUser && (
+//                 <div className="modal-overlay">
+//                     <div className="user-detail-modal">
+//                         <div className="modal-header">
+//                             <h3>User Details</h3>
+//                             <button
+//                                 className="close-btn"
+//                                 onClick={() => setSelectedUser(null)}
+//                             >
+//                                 <FaTimes />
+//                             </button>
+//                         </div>
+
+//                         <div className="modal-content">
+//                             <div className="user-avatar-large">
+//                                 {selectedUser.profilePhoto ? (
+//                                     <img src={selectedUser.profilePhoto} alt={`${selectedUser.firstName} ${selectedUser.lastName}`} />
+//                                 ) : (
+//                                     <div className="avatar-placeholder large">
+//                                         {selectedUser.firstName.charAt(0)}
+//                                     </div>
+//                                 )}
+//                             </div>
+
+//                             <div className="user-details">
+//                                 <div className="detail-item">
+//                                     <span className="detail-label">First Name:</span>
+//                                     <span className="detail-value">{selectedUser.firstName}</span>
+//                                 </div>
+//                                 <div className="detail-item">
+//                                     <span className="detail-label">Last Name:</span>
+//                                     <span className="detail-value">{selectedUser.lastName}</span>
+//                                 </div>
+//                                 <div className="detail-item">
+//                                     <span className="detail-label">Country:</span>
+//                                     <span className="detail-value">{selectedUser.country || 'Unknown'}</span>
+//                                 </div>
+//                                 <div className="detail-item">
+//                                     <span className="detail-label">Email:</span>
+//                                     <span className="detail-value">{selectedUser.email}</span>
+//                                 </div>
+//                             </div>
+
+//                             <div className="modal-actions">
+//                                 <button
+//                                     className="close-detail-btn"
+//                                     onClick={() => setSelectedUser(null)}
+//                                 >
+//                                     Close
+//                                 </button>
+//                             </div>
+//                         </div>
+//                     </div>
+//                 </div>
+//             )}
+
+//             {/* Notifications Panel */}
+//             <div
+//                 className={`notifications-backdrop ${showNotifications ? 'active' : ''}`}
+//                 onClick={() => setShowNotifications(false)}
+//             />
+
+//             <div className={`notifications-panel ${showNotifications ? 'active' : ''}`}>
+//                 <div className="panel-header">
+//                     <h3>Friend Requests</h3>
+//                     <button
+//                         className="close-btn"
+//                         onClick={handleClose}
+//                     >
+//                         <FaTimes />
+//                     </button>
+//                 </div>
+
+//                 <div className="panel-content">
+//                     {friendRequests.length === 0 ? (
+//                         <div className="no-requests">
+//                             <p>No pending friend requests</p>
+//                         </div>
+//                     ) : (
+//                         friendRequests.map(request => (
+//                             <div key={request._id} className="request-item">
+//                                 <div className="request-main">
+//                                     <div className="request-avatar">
+//                                         {request.requester?.profilePhoto ? (
+//                                             <img
+//                                                 src={request.requester.profilePhoto}
+//                                                 alt={`${request.requester.firstName} ${request.requester.lastName}`}
+//                                             />
+//                                         ) : (
+//                                             <div className="avatar-placeholder">
+//                                                 {request.requester?.firstName?.charAt(0)}
+//                                             </div>
+//                                         )}
+//                                     </div>
+
+//                                     <div className="request-details">
+//                                         <div className="request-name">
+//                                             {request.requester?.firstName} {request.requester?.lastName}
+//                                         </div>
+//                                         <div className="request-message">
+//                                             Wants to be your friend
+//                                         </div>
+//                                     </div>
+//                                 </div>
+
+//                                 <div className="request-actions">
+//                                     <button
+//                                         className="accept-btn"
+//                                         onClick={() => acceptFriendRequest(request._id)}
+//                                     >
+//                                         Accept
+//                                     </button>
+//                                     <button
+//                                         className="reject-btn"
+//                                         onClick={() => rejectFriendRequest(request._id)}
+//                                     >
+//                                         Reject
+//                                     </button>
+//                                 </div>
+//                             </div>
+//                         ))
+//                     )}
+//                 </div>
+//             </div>
+//         </div>
+//     );
+// };
+
+// ChatPage.defaultProps = {
+//     setChatTheme: () => {},
+//     blockUser: () => console.warn("blockUser function not provided"),
+//     clearChatHistory: () => console.warn("clearChatHistory function not provided")
+// };
+
+// export default ChatPage;
+
+
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  FaSearch, FaEllipsisV, FaPaperclip, FaMicrophone, FaSmile,
-  FaSignOutAlt, FaCheck, FaClock, FaTimes, FaArrowUp, FaArrowDown,
-  FaPalette, FaImage, FaBan, FaTrash, FaUserPlus, FaBell, FaUserFriends
+    FaSearch, FaEllipsisV, FaPaperclip, FaMicrophone, FaSmile,
+    FaSignOutAlt, FaCheck, FaClock, FaTimes, FaArrowUp, FaArrowDown,
+    FaPalette, FaImage, FaBan, FaTrash, FaUserPlus, FaBell, FaUserFriends, FaUser, FaCog
 } from 'react-icons/fa';
 import { IoIosSend, IoIosAdd } from 'react-icons/io';
-import { MdArrowBack } from 'react-icons/md';
+import { MdArrowBack, MdSearch, MdClose } from 'react-icons/md';
 import { toast } from 'react-toastify';
 import axios from 'axios';
 import './ChatPage.css';
 
-const ChatPage = ({ user, onLogout }) => {
-  const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('chats');
-  const [friends, setFriends] = useState([]);
-  const [allUsers, setAllUsers] = useState([]);
-  const [activeChat, setActiveChat] = useState(null);
-  const [message, setMessage] = useState('');
-  const [messages, setMessages] = useState({});
-  const [searchTerm, setSearchTerm] = useState('');
-  const [loadingFriends, setLoadingFriends] = useState(true);
-  const [loadingMessages, setLoadingMessages] = useState(false);
-  const [isSending, setIsSending] = useState(false);
-  const [onlineUsers, setOnlineUsers] = useState(new Set());
-  const messagesEndRef = useRef(null);
-  const [showAddFriendModal, setShowAddFriendModal] = useState(false);
-  const [friendRequests, setFriendRequests] = useState([]);
-  const [showNotifications, setShowNotifications] = useState(false);
-  const [showSidebar, setShowSidebar] = useState(true);
-  const [showFriendOptions, setShowFriendOptions] = useState(false);
-  const [selectedUser, setSelectedUser] = useState(null);
+const ChatPage = ({ user, token, onLogout }) => {
+    const navigate = useNavigate();
+    const [activeTab, setActiveTab] = useState('chats');
+    const [friends, setFriends] = useState([]);
+    const [allUsers, setAllUsers] = useState([]);
+    const [activeChat, setActiveChat] = useState(null);
+    const [message, setMessage] = useState('');
+    const [messages, setMessages] = useState({});
+    const [searchTerm, setSearchTerm] = useState('');
+    const [loadingFriends, setLoadingFriends] = useState(true);
+    const [loadingMessages, setLoadingMessages] = useState(false);
+    const [isSending, setIsSending] = useState(false);
+    const [onlineUsers, setOnlineUsers] = useState(new Set());
+    const messagesEndRef = useRef(null);
+    const [showAddFriendModal, setShowAddFriendModal] = useState(false);
+    const [friendRequests, setFriendRequests] = useState([]);
+    const [showNotifications, setShowNotifications] = useState(false);
+    const [showSidebar, setShowSidebar] = useState(true);
+    const [showFriendOptions, setShowFriendOptions] = useState(false);
+    const [selectedUser, setSelectedUser] = useState(null);
+    const [isMobilePanelOpen, setIsMobilePanelOpen] = useState(false);
+    const [showSearch, setShowSearch] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [showMenu, setShowMenu] = useState(false);
+    const [showContactPopup, setShowContactPopup] = useState(false);
+    const [showThemePopup, setShowThemePopup] = useState(false);
+    const [themeMode, setThemeMode] = useState('default');
+    const [selectedColor, setSelectedColor] = useState(null);
+    const [selectedWallpaper, setSelectedWallpaper] = useState(null);
+    const menuRef = useRef(null);
+    const themeRef = useRef(null);
 
-  const [isMobilePanelOpen, setIsMobilePanelOpen] = useState(false);
+    const BACKEND_URL = "http://localhost:5000";
 
-// Handle mobile animations
-  useEffect(() => {
-  if (showNotifications) {
-    // Timeout to allow DOM update before applying active class
-    setTimeout(() => setIsMobilePanelOpen(true), 10);
-  } else {
-    setIsMobilePanelOpen(false);
-  }
-}, [showNotifications]);
+    const [currentTheme, setCurrentTheme] = useState({});
+    const [blockedUsers, setBlockedUsers] = useState(() => {
+        const stored = localStorage.getItem("blockedUsers");
+        return stored ? JSON.parse(stored) : [];
+    });
 
+    useEffect(() => {
+        if (activeChat?._id) {
+            const themeData = localStorage.getItem('chatThemes');
+            const themes = themeData ? JSON.parse(themeData) : {};
+            setCurrentTheme(themes[activeChat._id] || {});
+        } else {
+            setCurrentTheme({});
+        }
+    }, [activeChat]);
 
-useEffect(() => {
-  if (showNotifications && window.innerWidth <= 768) {
-    document.body.style.overflow = 'hidden';
-  } else {
-    document.body.style.overflow = 'auto';
-  }
-  
-  return () => {
-    document.body.style.overflow = 'auto';
-  };
-}, [showNotifications]);
+    // Handle mobile animations
+    useEffect(() => {
+        if (showNotifications) {
+            setTimeout(() => setIsMobilePanelOpen(true), 10);
+        } else {
+            setIsMobilePanelOpen(false);
+        }
+    }, [showNotifications]);
 
-  // Simulate online status
-  useEffect(() => {
-    const onlineUserIds = new Set(['1', '3', '8']);
-    setOnlineUsers(onlineUserIds);
-  }, []);
+    useEffect(() => {
+        if (showNotifications && window.innerWidth <= 768) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = 'auto';
+        }
 
-  // Fetch friends from the database
-  useEffect(() => {
-    const fetchFriends = async () => {
-      try {
-        setLoadingFriends(true);
-        // This would be replaced with actual API call to get friends
-        const response = await axios.get('/api/friends');
-        setFriends(response.data);
-      } catch (error) {
-        toast.error('Failed to load friends');
-        console.error('Error fetching friends:', error);
-      } finally {
-        setLoadingFriends(false);
-      }
-    };
+        return () => {
+            document.body.style.overflow = 'auto';
+        };
+    }, [showNotifications]);
 
-    fetchFriends();
-  }, [user.id]);
+    // Simulate online status
+    useEffect(() => {
+        const onlineUserIds = new Set(['1', '3', '8']);
+        setOnlineUsers(onlineUserIds);
+    }, []);
 
-  // Fetch all users for add friend modal
-  useEffect(() => {
-    const fetchAllUsers = async () => {
-      try {
-        const response = await axios.get('/api/users');
-        setAllUsers(response.data.filter(u => u._id !== user.id));
-      } catch (error) {
-        toast.error('Failed to load users');
-        console.error('Error fetching users:', error);
-      }
-    };
-
-    fetchAllUsers();
-  }, [user.id]);
-
-  // Fetch friend requests
-  useEffect(() => {
-    const fetchFriendRequests = async () => {
-      try {
-        const response = await axios.get('/api/friend-requests');
-        setFriendRequests(response.data);
-      } catch (error) {
-        toast.error('Failed to load friend requests');
-        console.error('Error fetching friend requests:', error);
-      }
-    };
-
-    fetchFriendRequests();
-  }, [user.id]);
-
-  // Fetch messages when a chat is selected
-  useEffect(() => {
-    const fetchMessages = async () => {
-      if (!activeChat) return;
-
-      try {
-        setLoadingMessages(true);
-        const response = await axios.get(`/api/messages/${activeChat._id}`);
-        setMessages(prev => ({
-          ...prev,
-          [activeChat._id]: response.data
-        }));
-      } catch (error) {
-        toast.error('Failed to load messages');
-        console.error('Error fetching messages:', error);
-      } finally {
-        setLoadingMessages(false);
-      }
-    };
-
-    fetchMessages();
-  }, [activeChat]);
-
-  // Scroll to bottom when messages change
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages, activeChat]);
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-
-  const handleLogout = () => {
-    onLogout();
-    navigate("/");
-  };
-
-  const filteredFriends = friends.filter(friend =>
-    `${friend.firstName} ${friend.lastName}`.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-const sendFriendRequest = async (userId) => {
-  try {
-    // Change 'receiverId' to 'recipientId' to match backend
-    await axios.post('/api/friend-requests', { recipientId: userId });
-    
-    toast.success('Friend request sent');
-    setAllUsers(prev => prev.map(u => 
-      u._id === userId ? { ...u, requestSent: true } : u
-    ));
-  } catch (error) {
-    const message = error.response?.data?.message || 'Failed to send request';
-    toast.error(message);
-    console.error('Friend request error:', error.response?.data);
-  }
-};
-
-const acceptFriendRequest = async (requestId) => {
-  try {
-    await axios.put(`/api/friend-requests/${requestId}`, { status: 'accepted' });
-    
-    // Update UI
-    setFriendRequests(prev => prev.filter(req => req._id !== requestId));
-    toast.success('Friend request accepted');
-  } catch (error) {
-    toast.error('Failed to accept request');
-    console.error('Accept error:', error);
-  }
-};
-
-const rejectFriendRequest = async (requestId) => {
-  try {
-    await axios.put(`/api/friend-requests/${requestId}`, { status: 'rejected' });
-    
-    // Update UI
-    setFriendRequests(prev => prev.filter(req => req._id !== requestId));
-    toast.info('Friend request rejected');
-  } catch (error) {
-    toast.error('Failed to reject request');
-    console.error('Reject error:', error);
-  }
-};
-
-  const handleSendMessage = async () => {
-    if (!message.trim() || !activeChat) return;
-
-    const receiverId = activeChat._id;
-
-    const newMessage = {
-      text: message,
-      sender: user.id,
-      receiver: receiverId,
-      createdAt: new Date()
-    };
-
-    try {
-      setIsSending(true);
-      const response = await axios.post('/api/messages', newMessage);
-      
-      setMessages(prev => ({
-        ...prev,
-        [receiverId]: [...(prev[receiverId] || []), response.data]
-      }));
-
-      setMessage('');
-    } catch (error) {
-      toast.error('Failed to send message');
-      console.error('Error sending message:', error);
-    } finally {
-      setIsSending(false);
-    }
-  };
-
-  const handleKeyPress = (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSendMessage();
-    }
-  };
-
-  // Format time for messages
-  const formatMessageTime = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  };
-
-  // Check if user is online
-  const isUserOnline = (userId) => {
-    return onlineUsers.has(userId);
-  };
-
-  // Toggle sidebar on mobile
-  const toggleSidebar = () => {
-    setShowSidebar(!showSidebar);
-  };
-
-  // View user details
-  const viewUserDetails = (user) => {
-    setSelectedUser(user);
-  };
-
-
-  const handleClose = () => {
-  setShowNotifications(false);
-  
-  // Reset body overflow when closing panel
-  if (window.innerWidth <= 768) {
-    document.body.style.overflow = 'auto';
-  }
-};
-
-
-  return (
-    <div className="airchat-container">
-      {/* Sidebar - Only show on large screens or when toggled on mobile */}
-      {(showSidebar || window.innerWidth > 768) && (
-        <div className="sidebar">
-          <div className="sidebar-header">
-            <div className="app-logo">
-              <span className="logo-text">AirChat</span>
-            </div>
-            <div className="header-actions">
-              <button
-                className="icon-btn notification-btn"
-                onClick={() => setShowNotifications(!showNotifications)}
-                title="Notifications"
-              >
-                <FaBell />
-                {friendRequests.length > 0 && (
-                  <span className="notification-badge">{friendRequests.length}</span>
-                )}
-              </button>
-              <button
-                className="icon-btn logout-btn"
-                onClick={handleLogout}
-                title="Logout"
-              >
-                <FaSignOutAlt />
-              </button>
-            </div>
-          </div>
-
-          <div className="tabs">
-            <button
-              className={`tab-btn ${activeTab === 'chats' ? 'active' : ''}`}
-              onClick={() => setActiveTab('chats')}
-            >
-              CHATS
-            </button>
-            <button
-              className={`tab-btn ${activeTab === 'status' ? 'active' : ''}`}
-              onClick={() => setActiveTab('status')}
-            >
-              STATUS
-            </button>
-          </div>
-
-          <div className="search-container">
-            <div className="search-box">
-              <FaSearch className="search-icon" />
-              <input
-                type="text"
-                placeholder="Search friends"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-          </div>
-
-          <div className="chats-list">
-            {loadingFriends ? (
-              <div className="text-center py-4">
-                <div className="spinner-border text-primary" role="status">
-                  <span className="visually-hidden">Loading...</span>
-                </div>
-              </div>
-            ) : filteredFriends.length === 0 ? (
-              <div className="text-center py-4">
-                <p>No friends found</p>
-              </div>
-            ) : (
-              filteredFriends.map(friend => {
-                const lastMessage = messages[friend._id]?.[messages[friend._id]?.length - 1];
-                const isOnline = isUserOnline(friend._id);
-
-                return (
-                  <div
-                    key={friend._id}
-                    className={`chat-item ${activeChat?._id === friend._id ? 'active' : ''}`}
-                    onClick={() => {
-                      setActiveChat(friend);
-                      if (window.innerWidth <= 768) setShowSidebar(false);
-                    }}
-                  >
-                    <div className="avatar">
-                      {friend.profilePhoto ? (
-                        <img src={friend.profilePhoto} alt={`${friend.firstName} ${friend.lastName}`} />
-                      ) : (
-                        <div className="avatar-placeholder">
-                          {friend.firstName.charAt(0)}
-                        </div>
-                      )}
-                      {isOnline && <span className="online-badge"></span>}
-                    </div>
-                    <div className="chat-info">
-                      <div className="chat-header">
-                        <div className="user-name">{friend.firstName} {friend.lastName}</div>
-                        <div className="last-seen">
-                          {isOnline ? (
-                            <span className="online-text">Online</span>
-                          ) : (
-                            <span>Offline</span>
-                          )}
-                        </div>
-                      </div>
-                      <div className="last-message-container">
-                        {lastMessage ? (
-                          <>
-                            <div className="last-message-text">
-                              {lastMessage.text}
-                            </div>
-                            <div className="last-message-time">
-                              {formatMessageTime(lastMessage.createdAt)}
-                            </div>
-                          </>
-                        ) : (
-                          <div className="no-messages-text">No messages yet</div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
+    // Fetch friends from the database
+    useEffect(() => {
+        const fetchFriends = async () => {
+            try {
+                setLoadingFriends(true);
+                const response = await axios.get('/api/friends', {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                });
+                
+                // Filter out blocked users
+                const filtered = response.data.filter(
+                    friend => !blockedUsers.includes(friend._id)
                 );
-              })
-            )}
-          </div>
+                
+                setFriends(filtered);
+            } catch (error) {
+                toast.error('Failed to load friends');
+                console.error('Error fetching friends:', error);
+            } finally {
+                setLoadingFriends(false);
+            }
+        };
 
-          {/* Friend Options Toggle */}
-          <div className="friend-options-toggle">
-            <button
-              className="toggle-btn"
-              onClick={() => setShowFriendOptions(!showFriendOptions)}
-            >
-              <IoIosAdd />
-            </button>
-            
-            {showFriendOptions && (
-              <div className="friend-options">
-                <button 
-                  className="friend-option-btn"
-                  onClick={() => {
-                    setShowAddFriendModal(true);
-                    setShowFriendOptions(false);
-                  }}
-                >
-                  <FaUserPlus /> Add Friend
-                </button>
-                <button 
-                  className="friend-option-btn"
-                  onClick={() => setShowFriendOptions(false)}
-                >
-                  <MdArrowBack /> Back
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
+        fetchFriends();
+    }, [user.id, blockedUsers, token]);
 
-      {/* Main Chat Area */}
-      <div className={`main-chat-area ${!showSidebar && window.innerWidth <= 768 ? 'expanded' : ''}`}>
-        {activeChat ? (
-          <>
-            <div className="chat-header">
-              {window.innerWidth <= 768 && (
-                <button 
-                  className="back-btn"
-                  onClick={() => {
-                    setShowSidebar(true);
-                    setActiveChat(null);
-                  }}
-                >
-                  <MdArrowBack />
-                </button>
-              )}
-              <div className="chat-partner">
-                <div className="avatar">
-                  {activeChat.profilePhoto ? (
-                    <img src={activeChat.profilePhoto} alt={`${activeChat.firstName} ${activeChat.lastName}`} />
-                  ) : (
-                    <div className="avatar-placeholder">
-                      {activeChat.firstName.charAt(0)}
-                    </div>
-                  )}
-                  {isUserOnline(activeChat._id) && <span className="online-badge"></span>}
-                </div>
-                <div className="partner-info">
-                  <div className="partner-name">
-                    {activeChat.firstName} {activeChat.lastName}
-                  </div>
-                  <div className="partner-status">
-                    {isUserOnline(activeChat._id) ? (
-                      <span className="online-text">Online</span>
-                    ) : (
-                      <span>Offline</span>
-                    )}
-                  </div>
-                </div>
-              </div>
-              <div className="header-actions">
-                <button className="icon-btn">
-                  <FaEllipsisV />
-                </button>
-              </div>
-            </div>
+    // Fetch all users for add friend modal
+    useEffect(() => {
+        const fetchAllUsers = async () => {
+            try {
+                const response = await axios.get('/api/users');
+                const filteredUsers = response.data.filter(u => u._id !== user.id);
 
-            <div className="chat-messages">
-              {loadingMessages ? (
-                <div className="text-center py-4">
-                  <div className="spinner-border text-primary" role="status">
-                    <span className="visually-hidden">Loading messages...</span>
-                  </div>
-                </div>
-              ) : messages[activeChat._id]?.length === 0 ? (
-                <div className="no-messages">
-                  <p>No messages yet. Start the conversation!</p>
-                </div>
-              ) : (
-                messages[activeChat._id]?.map((msg) => (
-                  <div
-                    key={msg._id}
-                    className={`message ${msg.sender === user.id ? 'sent' : 'received'}`}
-                  >
-                    <div className="message-content">
-                      {msg.text}
-                    </div>
-                    <div className="message-meta">
-                      <div className="message-time">
-                        {formatMessageTime(msg.createdAt)}
-                      </div>
-                    </div>
-                  </div>
-                ))
-              )}
-              <div ref={messagesEndRef} />
-            </div>
+                // Add default properties to each user
+                const usersWithDefaults = filteredUsers.map(user => ({
+                    ...user,
+                    profilePhoto: user.profilePhoto || '',
+                    email: user.email || '',
+                    phone: user.phone || '',
+                    country: user.country || ''
+                }));
 
-            <div className="message-input-area">
-              <button className="icon-btn">
-                <FaSmile />
-              </button>
-              <button className="icon-btn">
-                <FaPaperclip />
-              </button>
-              <div className="message-input-container">
-                <textarea
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  onKeyDown={handleKeyPress}
-                  placeholder="Type a message"
-                  rows={1}
-                />
-              </div>
-              {message ? (
-                <button
-                  className="send-btn"
-                  onClick={handleSendMessage}
-                  disabled={isSending}
-                >
-                  {isSending ? (
-                    <div className="sending-spinner"></div>
-                  ) : (
-                    <IoIosSend />
-                  )}
-                </button>
-              ) : (
-                <button className="icon-btn">
-                  <FaMicrophone />
-                </button>
-              )}
-            </div>
-          </>
-        ) : (
-          <div className="no-chat-selected">
-            <div className="welcome-container">
-              <div className="logo-large">
-                <span className="logo-text">AirChat</span>
-              </div>
-              <h2>Welcome, {user.name}</h2>
-              <p>Select a chat to start messaging</p>
-              <p>Or start a new conversation</p>
-            </div>
-          </div>
-        )}
-      </div>
+                setAllUsers(usersWithDefaults);
+            } catch (error) {
+                toast.error('Failed to load users');
+                console.error('Error fetching users:', error);
+            }
+        };
 
-      {/* Add Friend Modal */}
-      {showAddFriendModal && (
-        <div className="modal-overlay">
-          <div className="add-friend-modal">
-            <div className="modal-header">
-              <h3>Add Friends</h3>
-              <button 
-                className="close-btn" 
-                onClick={() => setShowAddFriendModal(false)}
-              >
-                <FaTimes />
-              </button>
-            </div>
-            
-            <div className="modal-content">
-              {allUsers
-                .filter(u => 
-                  !friends.some(f => f._id === u._id) && 
-                  !friendRequests.some(r => r.senderId === u._id)
-                )
-                .map(user => (
-                  <div key={user._id} className="user-item">
-                    <div className="user-avatar">
-                      {user.profilePhoto ? (
-                        <img src={user.profilePhoto} alt={`${user.firstName} ${user.lastName}`} />
-                      ) : (
-                        <div className="avatar-placeholder">
-                          {user.firstName.charAt(0)}
-                        </div>
-                      )}
-                    </div>
-                    <div className="user-info">
-                      <div className="user-name">{user.firstName} {user.lastName}</div>
-                      <div className="user-country">{user.country || 'Unknown'}</div>
-                    </div>
-                    <div className="user-actions">
-                      <button 
-                        className="view-btn"
-                        onClick={() => viewUserDetails(user)}
-                      >
-                        View
-                      </button>
-                      <button 
-                        className={`add-btn ${user.requestSent ? 'sent' : ''}`}
-                        onClick={() => sendFriendRequest(user._id)}
-                        disabled={user.requestSent}
-                      >
-                        {user.requestSent ? 'Request Sent' : 'Add'}
-                      </button>
-                    </div>
-                  </div>
-                ))}
-            </div>
-          </div>
-        </div>
-      )}
+        fetchAllUsers();
+    }, [user.id]);
 
-      {/* User Detail Modal */}
-      {selectedUser && (
-        <div className="modal-overlay">
-          <div className="user-detail-modal">
-            <div className="modal-header">
-              <h3>User Details</h3>
-              <button 
-                className="close-btn" 
-                onClick={() => setSelectedUser(null)}
-              >
-                <FaTimes />
-              </button>
-            </div>
-            
-            <div className="modal-content">
-              <div className="user-avatar-large">
-                {selectedUser.profilePhoto ? (
-                  <img src={selectedUser.profilePhoto} alt={`${selectedUser.firstName} ${selectedUser.lastName}`} />
-                ) : (
-                  <div className="avatar-placeholder large">
-                    {selectedUser.firstName.charAt(0)}
-                  </div>
-                )}
-              </div>
-              
-              <div className="user-details">
-                <div className="detail-item">
-                  <span className="detail-label">First Name:</span>
-                  <span className="detail-value">{selectedUser.firstName}</span>
-                </div>
-                <div className="detail-item">
-                  <span className="detail-label">Last Name:</span>
-                  <span className="detail-value">{selectedUser.lastName}</span>
-                </div>
-                <div className="detail-item">
-                  <span className="detail-label">Country:</span>
-                  <span className="detail-value">{selectedUser.country || 'Unknown'}</span>
-                </div>
-                <div className="detail-item">
-                  <span className="detail-label">Email:</span>
-                  <span className="detail-value">{selectedUser.email}</span>
-                </div>
-              </div>
-              
-              <div className="modal-actions">
-                <button 
-                  className="close-detail-btn"
-                  onClick={() => setSelectedUser(null)}
-                >
-                  Close
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+    // Fetch friend requests
+    useEffect(() => {
+        const fetchFriendRequests = async () => {
+            try {
+                const response = await axios.get('/api/friend-requests');
+                setFriendRequests(response.data);
+            } catch (error) {
+                toast.error('Failed to load friend requests');
+                console.error('Error fetching friend requests:', error);
+            }
+        };
 
-      {/* Notifications Panel */}
+        fetchFriendRequests();
+    }, [user.id]);
 
-{/* Add backdrop for mobile */}
-<div 
-  className={`notifications-backdrop ${showNotifications ? 'active' : ''}`} 
-  onClick={() => setShowNotifications(false)}
-/>
+    // Fetch messages when a chat is selected
+    useEffect(() => {
+        const fetchMessages = async () => {
+            if (!activeChat) return;
 
-{/* Updated notifications panel */}
-<div className={`notifications-panel ${showNotifications ? 'active' : ''}`}>
-  <div className="panel-header">
-    <h3>Friend Requests</h3>
-    <button 
-      className="close-btn" 
-      onClick={handleClose}
-    >
-      <FaTimes />
-    </button>
-  </div>
-  
-<div className="panel-content">
-  {friendRequests.length === 0 ? (
-    <div className="no-requests">
-      <p>No pending friend requests</p>
-    </div>
-  ) : (
-    friendRequests.map(request => (
-      <div key={request._id} className="request-item">
-        <div className="request-main">
-          <div className="request-avatar">
-            {request.requester?.profilePhoto ? (
-              <img 
-                src={request.requester.profilePhoto} 
-                alt={`${request.requester.firstName} ${request.requester.lastName}`} 
-              />
-            ) : (
-              <div className="avatar-placeholder">
-                {request.requester?.firstName?.charAt(0)}
-              </div>
-            )}
-          </div>
-          
-          <div className="request-details">
-            <div className="request-name">
-              {request.requester?.firstName} {request.requester?.lastName}
-            </div>
-            <div className="request-message">
-              Wants to be your friend
-            </div>
-          </div>
-        </div>
+            try {
+                setLoadingMessages(true);
+                const response = await axios.get(`/api/messages/${activeChat._id}`);
+                setMessages(prev => ({
+                    ...prev,
+                    [activeChat._id]: response.data
+                }));
+            } catch (error) {
+                toast.error('Failed to load messages');
+                console.error('Error fetching messages:', error);
+            } finally {
+                setLoadingMessages(false);
+            }
+        };
+
+        fetchMessages();
+    }, [activeChat]);
+
+    // Scroll to bottom when messages change
+    useEffect(() => {
+        scrollToBottom();
+    }, [messages, activeChat]);
+    
+
+    const scrollToBottom = () => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    };
+
+    const handleLogout = () => {
+        onLogout();
+        navigate("/");
+    };
+
+    const filteredFriends = friends.filter(friend =>
+        `${friend.firstName} ${friend.lastName}`.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    const sendFriendRequest = async (userId) => {
+        try {
+            await axios.post('/api/friend-requests', { recipientId: userId });
+            toast.success('Friend request sent');
+            setAllUsers(prev => prev.map(u =>
+                u._id === userId ? { ...u, requestSent: true } : u
+            ));
+        } catch (error) {
+            const message = error.response?.data?.message || 'Failed to send request';
+            toast.error(message);
+            console.error('Friend request error:', error.response?.data);
+        }
+    };
+
+    const acceptFriendRequest = async (requestId) => {
+        try {
+            await axios.put(`/api/friend-requests/${requestId}`, { status: 'accepted' });
+            setFriendRequests(prev => prev.filter(req => req._id !== requestId));
+            toast.success('Friend request accepted');
+        } catch (error) {
+            toast.error('Failed to accept request');
+            console.error('Accept error:', error);
+        }
+    };
+
+    const rejectFriendRequest = async (requestId) => {
+        try {
+            await axios.put(`/api/friend-requests/${requestId}`, { status: 'rejected' });
+            setFriendRequests(prev => prev.filter(req => req._id !== requestId));
+            toast.info('Friend request rejected');
+        } catch (error) {
+            toast.error('Failed to reject request');
+            console.error('Reject error:', error);
+        }
+    };
+
+    const handleSendMessage = async () => {
+        if (!message.trim() || !activeChat) return;
         
-        <div className="request-actions">
-          <button 
-            className="accept-btn"
-            onClick={() => acceptFriendRequest(request._id)}
-          >
-            Accept
-          </button>
-          <button 
-            className="reject-btn"
-            onClick={() => rejectFriendRequest(request._id)}
-          >
-            Reject
-          </button>
-        </div>
-      </div>
-    ))
-  )}
-</div>
-</div>
+        // Check if user is blocked
+        if (blockedUsers.includes(activeChat._id)) {
+            toast.error(`You cannot send messages to ${activeChat.firstName} because you have blocked them.`);
+            return;
+        }
 
-    </div>
-  );
+        const receiverId = activeChat._id;
+
+        const newMessage = {
+            text: message,
+            sender: user.id,
+            receiver: receiverId,
+            createdAt: new Date()
+        };
+
+        try {
+            setIsSending(true);
+            const response = await axios.post('/api/messages', newMessage);
+
+            setMessages(prev => ({
+                ...prev,
+                [receiverId]: [...(prev[receiverId] || []), response.data]
+            }));
+
+            setMessage('');
+        } catch (error) {
+            toast.error('Failed to send message');
+            console.error('Error sending message:', error);
+        } finally {
+            setIsSending(false);
+        }
+    };
+
+    const handleKeyPress = (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            handleSendMessage();
+        }
+    };
+
+    // Format time for messages
+    const formatMessageTime = (dateString) => {
+        const date = new Date(dateString);
+        return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    };
+
+    // Check if user is online
+    const isUserOnline = (userId) => {
+        return onlineUsers.has(userId);
+    };
+
+    // Toggle sidebar on mobile
+    const toggleSidebar = () => {
+        setShowSidebar(!showSidebar);
+    };
+
+    // View user details
+    const viewUserDetails = (user) => {
+        setSelectedUser(user);
+    };
+
+    const handleClose = () => {
+        setShowNotifications(false);
+        if (window.innerWidth <= 768) {
+            document.body.style.overflow = 'auto';
+        }
+    };
+
+    const handleThemeSelection = () => {
+        try {
+            if (activeChat && activeChat._id) {
+                const themeData = localStorage.getItem('chatThemes');
+                const themes = themeData ? JSON.parse(themeData) : {};
+
+                const newTheme = {
+                    color: selectedColor || null,
+                    wallpaper: selectedWallpaper || null
+                };
+
+                // Save to localStorage
+                themes[activeChat._id] = newTheme;
+                localStorage.setItem('chatThemes', JSON.stringify(themes));
+
+                // Update state to trigger re-render
+                setCurrentTheme(newTheme);
+
+                toast.success("Theme applied successfully");
+            }
+        } catch (error) {
+            console.error("Error saving theme:", error);
+            toast.error("Failed to apply theme");
+        }
+        setShowThemePopup(false);
+    };
+
+    const blockUser = async (userId) => {
+        try {
+            const token = localStorage.getItem("airchat_token");
+            if (!token) {
+                throw new Error("Missing authentication token");
+            }
+
+            const response = await fetch(`${BACKEND_URL}/api/users/block/${userId}`, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+
+            if (response.status === 401) {
+                localStorage.removeItem("airchat_token");
+                throw new Error("Session expired. Please login again");
+            }
+            
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || "Block request failed");
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error("Blocking error:", error);
+            throw error;
+        }
+    };
+
+    const handleBlockUser = async () => {
+        if (!activeChat?._id) {
+            toast.error("No active chat selected");
+            return;
+        }
+
+        try {
+            const token = localStorage.getItem("airchat_token");
+            if (!token) {
+                toast.error("Please login first");
+                return;
+            }
+
+            const result = await blockUser(activeChat._id);
+            
+            // Update blocked users
+            const updatedBlocked = [...blockedUsers, activeChat._id];
+            setBlockedUsers(updatedBlocked);
+            localStorage.setItem("blockedUsers", JSON.stringify(updatedBlocked));
+
+            // Remove from friends list
+            setFriends(prev => prev.filter(friend => friend._id !== activeChat._id));
+            
+            // Close active chat
+            setActiveChat(null);
+
+            toast.success(result.message);
+            setShowMenu(false);
+        } catch (err) {
+            // Handle session expiration
+            if (err.message === "Session expired. Please login again") {
+                toast.error("Session expired. Please log in again");
+                onLogout();  // Trigger logout flow
+            } else {
+                toast.error(err.message || "User blocking failed");
+            }
+        }
+    };
+
+    useEffect(() => {
+        const handleClickOutside = (e) => {
+            if (menuRef.current && !menuRef.current.contains(e.target)) {
+                setShowMenu(false);
+            }
+            if (themeRef.current && !themeRef.current.contains(e.target)) {
+                setShowThemePopup(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    return (
+        <div className="airchat-container">
+            {/* Sidebar - Only show on large screens or when toggled on mobile */}
+            {(showSidebar || window.innerWidth > 768) && (
+                <div className="sidebar">
+                    <div className="sidebar-header">
+                        <div className="app-logo">
+                            <span className="logo-text">AirChat</span>
+                        </div>
+                        <div className="header-actions">
+                            <button
+                                className="icon-btn notification-btn"
+                                onClick={() => setShowNotifications(!showNotifications)}
+                                title="Notifications"
+                            >
+                                <FaBell />
+                                {friendRequests.length > 0 && (
+                                    <span className="notification-badge">{friendRequests.length}</span>
+                                )}
+                            </button>
+                            <button
+                                className="icon-btn logout-btn"
+                                onClick={handleLogout}
+                                title="Logout"
+                            >
+                                <FaSignOutAlt />
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="tabs">
+                        <button
+                            className={`tab-btn ${activeTab === 'chats' ? 'active' : ''}`}
+                            onClick={() => setActiveTab('chats')}
+                        >
+                            CHATS
+                        </button>
+                        <button
+                            className={`tab-btn ${activeTab === 'status' ? 'active' : ''}`}
+                            onClick={() => setActiveTab('status')}
+                        >
+                            STATUS
+                        </button>
+                    </div>
+
+                    <div className="chats-list">
+                        {loadingFriends ? (
+                            <div className="text-center py-4">
+                                <div className="spinner-border text-primary" role="status">
+                                    <span className="visually-hidden">Loading...</span>
+                                </div>
+                            </div>
+                        ) : filteredFriends.length === 0 ? (
+                            <div className="text-center py-4">
+                                <p>No friends found</p>
+                            </div>
+                        ) : (
+                            filteredFriends.map(friend => {
+                                const lastMessage = messages[friend._id]?.[messages[friend._id]?.length - 1];
+                                const isOnline = isUserOnline(friend._id);
+
+                                return (
+                                    <div
+                                        key={friend._id}
+                                        className={`chat-item ${activeChat?._id === friend._id ? 'active' : ''}`}
+                                        onClick={() => {
+                                            // Find full user details from allUsers
+                                            const fullUser = allUsers.find(u => u._id === friend._id) || friend;
+                                            setActiveChat({
+                                                ...fullUser,
+                                                phone: fullUser.phone || '',
+                                                email: fullUser.email || '',
+                                                country: fullUser.country || '',
+                                                profilePhoto: fullUser.profilePhoto || ''
+                                            });
+                                            if (window.innerWidth <= 768) setShowSidebar(false);
+                                        }}
+                                    >
+                                        <div className="avatar">
+                                            {friend.profilePhoto ? (
+                                                <img src={friend.profilePhoto} alt={`${friend.firstName} ${friend.lastName}`} />
+                                            ) : (
+                                                <div className="avatar-placeholder">
+                                                    {friend.firstName.charAt(0)}
+                                                </div>
+                                            )}
+                                            {isOnline && <span className="online-badge"></span>}
+                                        </div>
+                                        <div className="chat-info">
+                                            <div className="chat-header">
+                                                <div className="user-name">{friend.firstName} {friend.lastName}</div>
+                                                <div className="last-seen">
+                                                    {isOnline ? (
+                                                        <span className="online-text">Online</span>
+                                                    ) : (
+                                                        <span>Offline</span>
+                                                    )}
+                                                </div>
+                                            </div>
+                                            <div className="last-message-container">
+                                                {lastMessage ? (
+                                                    <>
+                                                        <div className="last-message-text">
+                                                            {lastMessage.text}
+                                                        </div>
+                                                        <div className="last-message-time">
+                                                            {formatMessageTime(lastMessage.createdAt)}
+                                                        </div>
+                                                    </>
+                                                ) : (
+                                                    <div className="no-messages-text">No messages yet</div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            })
+                        )}
+                    </div>
+
+                    {/* Friend Options Toggle */}
+                    <div className="friend-options-toggle">
+                        <button
+                            className="toggle-btn"
+                            onClick={() => setShowFriendOptions(!showFriendOptions)}
+                        >
+                            <IoIosAdd />
+                        </button>
+
+                        {showFriendOptions && (
+                            <div className="friend-options">
+                                <button
+                                    className="friend-option-btn"
+                                    onClick={() => {
+                                        setShowAddFriendModal(true);
+                                        setShowFriendOptions(false);
+                                    }}
+                                >
+                                    <FaUserPlus /> Add Friend
+                                </button>
+
+      <button
+        className="friend-option-btn"
+      >
+        <FaUser /> Profile
+      </button>
+
+      <button
+        className="friend-option-btn"
+      >
+        <FaCog /> Settings
+      </button>
+
+                                <button
+                                    className="friend-option-btn"
+                                    onClick={() => setShowFriendOptions(false)}
+                                >
+                                    <MdArrowBack /> Back
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
+
+            {/* Main Chat Area */}
+            <div className={`main-chat-area ${!showSidebar && window.innerWidth <= 768 ? 'expanded' : ''}`}>
+                {activeChat ? (
+                    <>
+                        <div className="chat-header">
+                            {/* Left section - Back button & Profile */}
+                            <div className="header-left">
+                                {window.innerWidth <= 768 && (
+                                    <button
+                                        className="back-btn"
+                                        onClick={() => {
+                                            setShowSidebar(true);
+                                            setActiveChat(null);
+                                        }}
+                                    >
+                                        <MdArrowBack />
+                                    </button>
+                                )}
+
+                                <div className="chat-partner">
+                                    <div className="avatar">
+                                        {activeChat.profilePhoto ? (
+                                            <img
+                                                src={activeChat.profilePhoto}
+                                                alt={`${activeChat.firstName} ${activeChat.lastName}`}
+                                            />
+                                        ) : (
+                                            <div className="avatar-placeholder">
+                                                {activeChat.firstName?.charAt(0)}
+                                            </div>
+                                        )}
+                                        {isUserOnline(activeChat._id) && <span className="online-badge"></span>}
+                                    </div>
+                                    <div className="partner-info">
+                                        <div className="partner-name">
+                                            {activeChat.firstName} {activeChat.lastName}
+                                        </div>
+                                        <div className="partner-status">
+                                            {isUserOnline(activeChat._id) ? (
+                                                <span className="online-text">Online</span>
+                                            ) : (
+                                                <span>Offline</span>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Right section - Actions */}
+                            <div className="header-actions">
+                                <div className="menu-container" ref={menuRef}>
+                                    <button
+                                        className="icon-btn"
+                                        onClick={() => setShowMenu(!showMenu)}
+                                    >
+                                        <FaEllipsisV />
+                                    </button>
+
+                                    {showMenu && (
+                                        <div className="menu-popup">
+                                            <button onClick={() => {
+                                                setShowContactPopup(true);
+                                                setShowMenu(false);
+                                            }}>
+                                                View Contact
+                                            </button>
+                                            <button onClick={() => {
+                                                setShowThemePopup(true);
+                                                setShowMenu(false);
+                                            }}>
+                                                Chat Theme
+                                            </button>
+                                            <button onClick={handleBlockUser}>
+                                                Block User
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Contact Popup */}
+                            {showContactPopup && activeChat && (
+                                <div className="contact-popup">
+                                    <div className="popup-content">
+                                        <button
+                                            className="close-popup"
+                                            onClick={() => setShowContactPopup(false)}
+                                        >
+                                            <MdClose />
+                                        </button>
+
+                                        <div className="contact-header">
+                                            <div className="contact-avatar">
+                                                {activeChat.profilePhoto ? (
+                                                    <img
+                                                        src={activeChat.profilePhoto}
+                                                        alt={`${activeChat.firstName} ${activeChat.lastName}`}
+                                                    />
+                                                ) : (
+                                                    <div className="avatar-placeholder large">
+                                                        {activeChat.firstName?.charAt(0)}
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <h3>{activeChat.firstName} {activeChat.lastName}</h3>
+                                        </div>
+
+                                        <div className="contact-details">
+                                            <div className="detail-item">
+                                                <label>Email:</label>
+                                                <span>{activeChat.email || 'Not provided'}</span>
+                                            </div>
+                                            <div className="detail-item">
+                                                <label>Phone:</label>
+                                                <span>{activeChat.phoneNumber || 'Not provided'}</span>
+                                            </div>
+                                            <div className="detail-item">
+                                                <label>Country:</label>
+                                                <span>{activeChat.country || 'Not provided'}</span>
+                                            </div>
+                                            <div className="detail-item">
+                                                <label>Status:</label>
+                                                <span>
+                                                    {isUserOnline(activeChat._id)
+                                                        ? 'Online'
+                                                        : 'Offline'}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Theme Popup */}
+                            {showThemePopup && (
+                                <div className="theme-popup" ref={themeRef}>
+                                    <div className="popup-content">
+                                        <button
+                                            className="close-popup"
+                                            onClick={() => setShowThemePopup(false)}
+                                        >
+                                            <MdClose />
+                                        </button>
+
+                                        <h3>Chat Theme</h3>
+
+                                        <div className="theme-tabs">
+                                            <button
+                                                className={themeMode === 'color' ? 'active' : ''}
+                                                onClick={() => setThemeMode('color')}
+                                            >
+                                                Color Theme
+                                            </button>
+                                            <button
+                                                className={themeMode === 'wallpaper' ? 'active' : ''}
+                                                onClick={() => setThemeMode('wallpaper')}
+                                            >
+                                                Wallpaper
+                                            </button>
+                                        </div>
+
+                                        <div className="theme-content">
+                                            {themeMode === 'color' ? (
+                                                <div className="color-themes">
+                                                    <h4>Select a color theme:</h4>
+                                                    <div className="color-grid">
+                                                        {['#f0f8ff', '#fff0f5', '#f5f5dc', '#e6e6fa', '#f0fff0', '#fffacd'].map(color => (
+                                                            <div
+                                                                key={color}
+                                                                className={`color-option ${selectedColor === color ? 'selected' : ''}`}
+                                                                style={{ backgroundColor: color }}
+                                                                onClick={() => setSelectedColor(color)}
+                                                            />
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            ) : (
+                                                <div className="wallpaper-themes">
+                                                    <h4>Select a wallpaper:</h4>
+                                                    <input
+                                                        type="file"
+                                                        accept="image/*"
+                                                        onChange={(e) => {
+                                                            if (e.target.files[0]) {
+                                                                const reader = new FileReader();
+                                                                reader.onload = (event) => {
+                                                                    setSelectedWallpaper(event.target.result);
+                                                                };
+                                                                reader.readAsDataURL(e.target.files[0]);
+                                                            }
+                                                        }}
+                                                    />
+                                                    {selectedWallpaper && (
+                                                        <div className="wallpaper-preview">
+                                                            <img src={selectedWallpaper} alt="Wallpaper preview" />
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        <div className="theme-actions">
+                                            <button
+                                                className="cancel-btn"
+                                                onClick={() => setShowThemePopup(false)}
+                                            >
+                                                Cancel
+                                            </button>
+                                            <button
+                                                className="confirm-btn"
+                                                onClick={handleThemeSelection}
+                                                disabled={!selectedColor && !selectedWallpaper}
+                                            >
+                                                Apply Theme
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="chat-messages"
+                            style={{
+                                backgroundColor: currentTheme.color || '#d9fdd3',
+                                backgroundImage: currentTheme.wallpaper
+                                    ? `url(${currentTheme.wallpaper})`
+                                    : 'none',
+                                backgroundSize: 'cover',
+                                backgroundPosition: 'center'
+                            }}>
+                            {loadingMessages ? (
+                                <div className="text-center py-4">
+                                    <div className="spinner-border text-primary" role="status">
+                                        <span className="visually-hidden">Loading messages...</span>
+                                    </div>
+                                </div>
+                            ) : messages[activeChat._id]?.length === 0 ? (
+                                <div className="no-messages">
+                                    <p>No messages yet. Start the conversation!</p>
+                                </div>
+                            ) : (
+                                messages[activeChat._id]?.map((msg) => (
+                                    <div
+                                        key={msg._id}
+                                        className={`message ${msg.sender === user.id ? 'sent' : 'received'}`}
+                                    >
+                                        <div className="message-content">
+                                            {msg.text}
+                                        </div>
+                                        <div className="message-meta">
+                                            <div className="message-time">
+                                                {formatMessageTime(msg.createdAt)}
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))
+                            )}
+                            <div ref={messagesEndRef} />
+                        </div>
+
+                        <div className="message-input-area">
+                            <button className="icon-btn">
+                                <FaSmile />
+                            </button>
+                            <button className="icon-btn">
+                                <FaPaperclip />
+                            </button>
+                            <div className="message-input-container">
+                                <textarea
+                                    value={message}
+                                    onChange={(e) => setMessage(e.target.value)}
+                                    onKeyDown={handleKeyPress}
+                                    placeholder="Type a message"
+                                    rows={1}
+                                />
+                            </div>
+                            {message ? (
+                                <button
+                                    className="send-btn"
+                                    onClick={handleSendMessage}
+                                    disabled={isSending}
+                                >
+                                    {isSending ? (
+                                        <div className="sending-spinner"></div>
+                                    ) : (
+                                        <IoIosSend />
+                                    )}
+                                </button>
+                            ) : (
+                                <button className="icon-btn">
+                                    <FaMicrophone />
+                                </button>
+                            )}
+                        </div>
+                    </>
+                ) : (
+                    <div className="no-chat-selected">
+                        <div className="welcome-container">
+                            <div className="logo-large">
+                                <span className="logo-text">AirChat</span>
+                            </div>
+                            <h2>Welcome, {user.name}</h2>
+                            <p>Select a chat to start messaging</p>
+                            <p>Or start a new conversation</p>
+                        </div>
+                    </div>
+                )}
+            </div>
+
+            {/* Add Friend Modal */}
+            {showAddFriendModal && (
+                <div className="modal-overlay">
+                    <div className="add-friend-modal">
+                        <div className="modal-header">
+                            <h3>Add Friends</h3>
+                            <button
+                                className="close-btn"
+                                onClick={() => setShowAddFriendModal(false)}
+                            >
+                                <FaTimes />
+                            </button>
+                        </div>
+
+                        <div className="modal-content">
+                            {allUsers
+                                .filter(u =>
+                                    !friends.some(f => f._id === u._id) &&
+                                    !friendRequests.some(r => r.senderId === u._id)
+                                )
+                                .map(user => (
+                                    <div key={user._id} className="user-item">
+                                        <div className="user-avatar">
+                                            {user.profilePhoto ? (
+                                                <img src={user.profilePhoto} alt={`${user.firstName} ${user.lastName}`} />
+                                            ) : (
+                                                <div className="avatar-placeholder">
+                                                    {user.firstName.charAt(0)}
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div className="user-info">
+                                            <div className="user-name">{user.firstName} {user.lastName}</div>
+                                            <div className="user-country">{user.country || 'Unknown'}</div>
+                                        </div>
+                                        <div className="user-actions">
+                                            <button
+                                                className="view-btn"
+                                                onClick={() => viewUserDetails(user)}
+                                            >
+                                                View
+                                            </button>
+                                            <button
+                                                className={`add-btn ${user.requestSent ? 'sent' : ''}`}
+                                                onClick={() => sendFriendRequest(user._id)}
+                                                disabled={user.requestSent}
+                                            >
+                                                {user.requestSent ? 'Request Sent' : 'Add'}
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* User Detail Modal */}
+            {selectedUser && (
+                <div className="modal-overlay">
+                    <div className="user-detail-modal">
+                        <div className="modal-header">
+                            <h3>User Details</h3>
+                            <button
+                                className="close-btn"
+                                onClick={() => setSelectedUser(null)}
+                            >
+                                <FaTimes />
+                            </button>
+                        </div>
+
+                        <div className="modal-content">
+                            <div className="user-avatar-large">
+                                {selectedUser.profilePhoto ? (
+                                    <img src={selectedUser.profilePhoto} alt={`${selectedUser.firstName} ${selectedUser.lastName}`} />
+                                ) : (
+                                    <div className="avatar-placeholder large">
+                                        {selectedUser.firstName.charAt(0)}
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="user-details">
+                                <div className="detail-item">
+                                    <span className="detail-label">First Name:</span>
+                                    <span className="detail-value">{selectedUser.firstName}</span>
+                                </div>
+                                <div className="detail-item">
+                                    <span className="detail-label">Last Name:</span>
+                                    <span className="detail-value">{selectedUser.lastName}</span>
+                                </div>
+                                <div className="detail-item">
+                                    <span className="detail-label">Country:</span>
+                                    <span className="detail-value">{selectedUser.country || 'Unknown'}</span>
+                                </div>
+                                <div className="detail-item">
+                                    <span className="detail-label">Email:</span>
+                                    <span className="detail-value">{selectedUser.email}</span>
+                                </div>
+                            </div>
+
+                            <div className="modal-actions">
+                                <button
+                                    className="close-detail-btn"
+                                    onClick={() => setSelectedUser(null)}
+                                >
+                                    Close
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Notifications Panel */}
+            <div
+                className={`notifications-backdrop ${showNotifications ? 'active' : ''}`}
+                onClick={() => setShowNotifications(false)}
+            />
+
+            <div className={`notifications-panel ${showNotifications ? 'active' : ''}`}>
+                <div className="panel-header">
+                    <h3>Friend Requests</h3>
+                    <button
+                        className="close-btn"
+                        onClick={handleClose}
+                    >
+                        <FaTimes />
+                    </button>
+                </div>
+
+                <div className="panel-content">
+                    {friendRequests.length === 0 ? (
+                        <div className="no-requests">
+                            <p>No pending friend requests</p>
+                        </div>
+                    ) : (
+                        friendRequests.map(request => (
+                            <div key={request._id} className="request-item">
+                                <div className="request-main">
+                                    <div className="request-avatar">
+                                        {request.requester?.profilePhoto ? (
+                                            <img
+                                                src={request.requester.profilePhoto}
+                                                alt={`${request.requester.firstName} ${request.requester.lastName}`}
+                                            />
+                                        ) : (
+                                            <div className="avatar-placeholder">
+                                                {request.requester?.firstName?.charAt(0)}
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <div className="request-details">
+                                        <div className="request-name">
+                                            {request.requester?.firstName} {request.requester?.lastName}
+                                        </div>
+                                        <div className="request-message">
+                                            Wants to be your friend
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="request-actions">
+                                    <button
+                                        className="accept-btn"
+                                        onClick={() => acceptFriendRequest(request._id)}
+                                    >
+                                        Accept
+                                    </button>
+                                    <button
+                                        className="reject-btn"
+                                        onClick={() => rejectFriendRequest(request._id)}
+                                    >
+                                        Reject
+                                    </button>
+                                </div>
+                            </div>
+                        ))
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+};
+
+ChatPage.defaultProps = {
+    setChatTheme: () => {},
+    blockUser: () => console.warn("blockUser function not provided"),
+    clearChatHistory: () => console.warn("clearChatHistory function not provided")
 };
 
 export default ChatPage;

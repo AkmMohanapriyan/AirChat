@@ -21,53 +21,109 @@ const LoginForm = ({
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  const validationSchema = Yup.object({
-    email: Yup.string()
-      .email('Invalid email address')
-      .required('Email is required'),
-    password: Yup.string()
-      .required('Password is required')
-  });
+  // const validationSchema = Yup.object({
+  //   email: Yup.string()
+  //     .email('Invalid email address')
+  //     .required('Email is required'),
+  //   password: Yup.string()
+  //     .required('Password is required')
+  // });
 
-  const formik = useFormik({
-    initialValues: {
-      email: '',
-      password: ''
-    },
-    validationSchema,
-    onSubmit: async (values) => {
-      setIsLoading(true);
-      try {
-        const response = await axios.post('/api/auth/login', values);
+  // const formik = useFormik({
+  //   initialValues: {
+  //     email: '',
+  //     password: ''
+  //   },
+  //   validationSchema,
+  //   onSubmit: async (values) => {
+  //     setIsLoading(true);
+  //     try {
+  //       const response = await axios.post('/api/auth/login', values);
 
-        if (response.data.success) {
-          // Extract user data from the response
-          const userData = {
-            id: response.data.user._id,
-            name: `${response.data.user.firstName} ${response.data.user.lastName}`,
-            email: response.data.user.email,
-            profilePhoto: response.data.user.profilePhoto
-          };
+  //       if (response.data.success) {
+  //         // Extract user data from the response
+  //         const userData = {
+  //           id: response.data.user._id,
+  //           name: `${response.data.user.firstName} ${response.data.user.lastName}`,
+  //           email: response.data.user.email,
+  //           profilePhoto: response.data.user.profilePhoto
+  //         };
 
-          // Pass user data to onSuccess
-          onSuccess(userData);
-        } else if (response.data.needsVerification) {
-          toast.info('Account not verified. Check your email for verification code.');
-          onClose();
-        }
-      } catch (error) {
-        const errorMessage = error.response?.data?.message || 'Login failed';
+  //         // Pass user data to onSuccess
+  //         onSuccess(userData);
+  //       } else if (response.data.needsVerification) {
+  //         toast.info('Account not verified. Check your email for verification code.');
+  //         onClose();
+  //       }
+  //     } catch (error) {
+  //       const errorMessage = error.response?.data?.message || 'Login failed';
 
-        if (error.response?.data?.needsVerification) {
-          toast.info('Account not verified. A new verification code has been sent to your email.');
-        } else {
-          toast.error(errorMessage);
-        }
-      } finally {
-        setIsLoading(false);
+  //       if (error.response?.data?.needsVerification) {
+  //         toast.info('Account not verified. A new verification code has been sent to your email.');
+  //       } else {
+  //         toast.error(errorMessage);
+  //       }
+  //     } finally {
+  //       setIsLoading(false);
+  //     }
+  //   }
+  // });
+
+
+  // Updated login form code
+const validationSchema = Yup.object({
+  email: Yup.string()
+    .email('Invalid email address')
+    .required('Email is required'),
+  password: Yup.string()
+    .required('Password is required')
+});
+
+const formik = useFormik({
+  initialValues: {
+    email: '',
+    password: ''
+  },
+  validationSchema,
+  onSubmit: async (values) => {
+    setIsLoading(true);
+    try {
+      const response = await axios.post('/api/auth/login', values);
+
+      if (response.data.success) {
+        // Extract user data AND token from the response
+        const userData = {
+          id: response.data.user._id,
+          name: `${response.data.user.firstName} ${response.data.user.lastName}`,
+          email: response.data.user.email,
+          profilePhoto: response.data.user.profilePhoto
+        };
+
+        // Store token in localStorage
+        localStorage.setItem('airchat_token', response.data.token);
+        
+        // Store user data
+        localStorage.setItem('airchat_user', JSON.stringify(userData));
+
+        // Pass user data to onSuccess
+        onSuccess(userData);
+      } else if (response.data.needsVerification) {
+        toast.info('Account not verified. Check your email for verification code.');
+        onClose();
       }
+    } catch (error) {
+      const errorMessage = error.response?.data?.message || 'Login failed';
+
+      if (error.response?.data?.needsVerification) {
+        toast.info('Account not verified. A new verification code has been sent to your email.');
+      } else {
+        toast.error(errorMessage);
+      }
+    } finally {
+      setIsLoading(false);
     }
-  });
+  }
+});
 
   return (
     <>
