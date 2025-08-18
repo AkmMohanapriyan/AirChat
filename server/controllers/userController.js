@@ -13,8 +13,6 @@ export const getUsers = async (req, res) => {
 };
 
 
-
-
 export const blockUser = async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
@@ -31,8 +29,6 @@ export const blockUser = async (req, res) => {
 };
 
 
-
-
 export const getFriends = async (req, res) => {
   try {
     const user = await User.findById(req.user.id).populate({
@@ -45,3 +41,31 @@ export const getFriends = async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 };
+
+
+export const getMe = async (req, res) => {
+  if (!req.user) {
+    return res.status(404).json({ message: 'User not found' });
+  }
+  res.status(200).json(req.user);
+};
+
+
+// Update logged-in user's profile
+export const updateProfile = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.user._id);
+  if (!user) return res.status(404).json({ message: 'User not found' });
+
+  const { firstName, lastName, phoneNumber, age, country, profilePhoto } = req.body;
+
+  user.firstName = firstName ?? user.firstName;
+  user.lastName = lastName ?? user.lastName;
+  user.phoneNumber = phoneNumber ?? user.phoneNumber;
+  user.age = age ?? user.age;
+  user.country = country ?? user.country;
+  user.profilePhoto = profilePhoto ?? user.profilePhoto;
+
+  await user.save();
+
+  res.status(200).json({ message: 'Profile updated successfully', user });
+});
