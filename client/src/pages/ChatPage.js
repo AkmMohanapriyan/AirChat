@@ -77,7 +77,7 @@ const ChatPage = ({ user: propUser, token, onLogout }) => {
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState('');
     const [success ] = useState('');
-  const [loading, setLoading] = useState(false); // Add this line
+//   const [loading, setLoading] = useState(false); // Add this line
     const fileInputRef = useRef(null);
 
     const [profileData, setProfileData] = useState({
@@ -783,37 +783,37 @@ const handleResendCode = () => {
     }, [propUser]);
 
     // Fetch user data for profile
-    const fetchUserData = async () => {
-        try {
-            setLoading(true);
-            const token = localStorage.getItem('airchat_token');
-            if (!token) throw new Error('No token found. Please login.');
+const fetchUserData = async () => {
+    try {
+        // Remove setLoading(true)
+        const token = localStorage.getItem('airchat_token');
+        if (!token) throw new Error('No token found. Please login.');
 
-            const response = await axios.get('http://localhost:5000/api/users/me', {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+        const response = await axios.get('http://localhost:5000/api/users/me', {
+            headers: { Authorization: `Bearer ${token}` }
+        });
 
-            const userData = response.data;
+        const userData = response.data;
 
-            setProfileData({
-                firstName: userData.firstName || '',
-                lastName: userData.lastName || '',
-                email: userData.email || '',
-                phoneNumber: userData.phoneNumber || '',
-                age: userData.age || '',
-                profilePhoto: userData.profilePhoto
-                    ? `http://localhost:5000${userData.profilePhoto}`
-                    : '',
-                country: userData.country || ''
-            });
+        setProfileData({
+            firstName: userData.firstName || '',
+            lastName: userData.lastName || '',
+            email: userData.email || '',
+            phoneNumber: userData.phoneNumber || '',
+            age: userData.age || '',
+            profilePhoto: userData.profilePhoto
+                ? `http://localhost:5000${userData.profilePhoto}`
+                : '',
+            country: userData.country || ''
+        });
 
-            setLoading(false);
-        } catch (err) {
-            console.error('Fetch profile error:', err.response?.data || err.message);
-            setError('Failed to load profile data');
-            setLoading(false);
-        }
-    };
+        // Remove setLoading(false)
+    } catch (err) {
+        console.error('Fetch profile error:', err.response?.data || err.message);
+        setError('Failed to load profile data');
+        // Remove setLoading(false)
+    }
+};
 
     useEffect(() => {
         fetchUserData();
