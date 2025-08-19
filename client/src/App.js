@@ -349,21 +349,44 @@ function App() {
   const [authData, setAuthData] = useState(null);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 3000);
-    const token = localStorage.getItem('airchat_token');
-    const user = localStorage.getItem('airchat_user');
+  // useEffect(() => {
+  //   const timer = setTimeout(() => setLoading(false), 3000);
+  //   const token = localStorage.getItem('airchat_token');
+  //   const user = localStorage.getItem('airchat_user');
 
-    if (token && user) {
-      try {
-        setAuthData({ token, user: JSON.parse(user) });
-      } catch {
-        localStorage.removeItem('airchat_token');
-        localStorage.removeItem('airchat_user');
-      }
+  //   if (token && user) {
+  //     try {
+  //       setAuthData({ token, user: JSON.parse(user) });
+  //     } catch {
+  //       localStorage.removeItem('airchat_token');
+  //       localStorage.removeItem('airchat_user');
+  //     }
+  //   }
+  //   return () => clearTimeout(timer);
+  // }, []);
+
+
+useEffect(() => {
+  const token = localStorage.getItem("airchat_token");
+  const user = localStorage.getItem("airchat_user");
+
+  if (token && user) {
+    try {
+      setAuthData({ token, user: JSON.parse(user) });
+    } catch {
+      localStorage.removeItem("airchat_token");
+      localStorage.removeItem("airchat_user");
+      setAuthData(null);
     }
-    return () => clearTimeout(timer);
-  }, []);
+  } else {
+    setAuthData(null); // ✅ make sure authData is always set
+  }
+
+  const timer = setTimeout(() => setLoading(false), 3000);
+  return () => clearTimeout(timer);
+}, []);
+
+
 
   const handleLoginSuccess = ({ user, token }) => {
     if (!user || !token) return;
