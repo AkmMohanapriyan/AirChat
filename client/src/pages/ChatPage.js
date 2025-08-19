@@ -8698,6 +8698,33 @@ const ChatPage = ({ user: propUser, token, onLogout }) => {
     const [refetchFriends, setRefetchFriends] = useState(false);
 
 
+
+        useEffect(() => {
+        // Load blocked users from localStorage
+        const storedBlocked = localStorage.getItem("blockedUsers");
+        if (storedBlocked) {
+            setBlockedUsers(JSON.parse(storedBlocked));
+        }
+        
+        // Load friends list
+        loadFriends();
+    }, []);
+
+        const loadFriends = async () => {
+        try {
+            const token = localStorage.getItem("airchat_token");
+            const response = await axios.get(`${BACKEND_URL}/api/friends`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            setFriends(response.data);
+        } catch (error) {
+            console.error("Error loading friends:", error);
+        }
+    };
+
+
+
+
     // State to track last read message per friend
     const [lastReadMessages, setLastReadMessages] = useState(() => {
         try {
@@ -8851,31 +8878,6 @@ const ChatPage = ({ user: propUser, token, onLogout }) => {
     }, []);
 
     // // Fetch friends
-    // useEffect(() => {
-    //     const fetchFriends = async () => {
-    //         try {
-    //             setLoadingFriends(true);
-    //             const response = await axios.get('/api/friends', {
-    //                 headers: { Authorization: `Bearer ${token}` }
-    //             });
-
-    //             const filtered = response.data.filter(
-    //                 friend => !blockedUsers.includes(friend._id)
-    //             );
-
-    //             setFriends(filtered);
-    //         } catch (error) {
-    //             toast.error('Failed to load friends');
-    //             console.error('Error fetching friends:', error);
-    //         } finally {
-    //             setLoadingFriends(false);
-    //         }
-    //     };
-
-    //     fetchFriends();
-    // }, [propUser.id, blockedUsers, token]);
-
-
     // Fetch friends whenever success, blockedUsers, or token changes
     useEffect(() => {
         const fetchFriends = async () => {
@@ -9004,12 +9006,7 @@ const ChatPage = ({ user: propUser, token, onLogout }) => {
         scrollToBottom();
     }, [messages, activeChat]);
 
-
-
-
-
     // un lock
-
     useEffect(() => {
   if (!showUnlockPopup) {
     setAppLockStep(null);
@@ -9067,40 +9064,95 @@ const ChatPage = ({ user: propUser, token, onLogout }) => {
         }
     };
 
-    const handleSendMessage = async () => {
-        if (!message.trim() || !activeChat) return;
+    // const handleSendMessage = async () => {
+    //     if (!message.trim() || !activeChat) return;
 
-        if (blockedUsers.includes(activeChat._id)) {
-            toast.error(`You cannot send messages to ${activeChat.firstName} because you have blocked them.`);
-            return;
-        }
+    //     if (blockedUsers.includes(activeChat._id)) {
+    //         toast.error(`You cannot send messages to ${activeChat.firstName} because you have blocked them.`);
+    //         return;
+    //     }
 
-        const receiverId = activeChat._id;
+    //     const receiverId = activeChat._id;
 
-        const newMessage = {
-            text: message,
-            sender: propUser.id,
-            receiver: receiverId,
-            createdAt: new Date()
-        };
+    //     const newMessage = {
+    //         text: message,
+    //         sender: propUser.id,
+    //         receiver: receiverId,
+    //         createdAt: new Date()
+    //     };
 
-        try {
-            setIsSending(true);
-            const response = await axios.post('/api/messages', newMessage);
+    //     try {
+    //         setIsSending(true);
+    //         const response = await axios.post('/api/messages', newMessage);
 
-            setMessages(prev => ({
-                ...prev,
-                [receiverId]: [...(prev[receiverId] || []), response.data]
-            }));
+    //         setMessages(prev => ({
+    //             ...prev,
+    //             [receiverId]: [...(prev[receiverId] || []), response.data]
+    //         }));
 
+    //         setMessage('');
+    //     } catch (error) {
+    //         toast.error('Failed to send message');
+    //         console.error('Error sending message:', error);
+    //     } finally {
+    //         setIsSending(false);
+    //     }
+    // };
+
+const handleSendMessage = async () => {
+    if (!message.trim() || !activeChat) return;
+
+    const receiverId = activeChat._id;
+
+    // Check if sender blocked receiver
+    if (blockedUsers.includes(receiverId)) {
+        toast.error(`You cannot send messages to ${activeChat.firstName} because you have blocked them.`);
+        setMessage('');
+        return;
+    }
+
+    const token = localStorage.getItem("airchat_token");
+    if (!token) {
+        toast.error("Please login first");
+        return;
+    }
+
+    try {
+        setIsSending(true);
+
+        const response = await axios.post(
+            `${BACKEND_URL}/api/messages`,
+            { text: message, sender: propUser.id, receiver: receiverId },
+            { headers: { Authorization: `Bearer ${token}` } }
+        );
+
+        // Update UI only if message was successfully sent
+        setMessages(prev => ({
+            ...prev,
+            [receiverId]: [...(prev[receiverId] || []), response.data]
+        }));
+
+        setMessage('');
+    } catch (error) {
+        if (error.response?.status === 401) {
+            toast.error("Session expired. Please login again.");
+            onLogout();
+        } else if (error.response?.status === 403) {
+            // Handle case where receiver blocked sender
+            toast.error(`You cannot send messages to ${activeChat.firstName} because they blocked you.`);
             setMessage('');
-        } catch (error) {
-            toast.error('Failed to send message');
-            console.error('Error sending message:', error);
-        } finally {
-            setIsSending(false);
+        } else {
+            toast.error("Failed to send message");
         }
-    };
+        console.error("Error sending message:", error);
+    } finally {
+        setIsSending(false);
+    }
+};
+
+
+
+
 
     const handleKeyPress = (e) => {
         if (e.key === 'Enter' && !e.shiftKey) {
@@ -9160,71 +9212,139 @@ const ChatPage = ({ user: propUser, token, onLogout }) => {
         setShowThemePopup(false);
     };
 
-    const blockUser = async (userId) => {
-        try {
-            const token = localStorage.getItem("airchat_token");
-            if (!token) {
-                throw new Error("Missing authentication token");
-            }
+    // const blockUser = async (userId) => {
+    //     try {
+    //         const token = localStorage.getItem("airchat_token");
+    //         if (!token) {
+    //             throw new Error("Missing authentication token");
+    //         }
 
-            const response = await fetch(`${BACKEND_URL}/api/users/block/${userId}`, {
-                method: "PUT",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
-            });
+    //         const response = await fetch(`${BACKEND_URL}/api/users/block/${userId}`, {
+    //             method: "PUT",
+    //             headers: {
+    //                 "Content-Type": "application/json",
+    //                 Authorization: `Bearer ${token}`,
+    //             },
+    //         });
 
-            if (response.status === 401) {
-                localStorage.removeItem("airchat_token");
-                throw new Error("Session expired. Please login again");
-            }
+    //         if (response.status === 401) {
+    //             localStorage.removeItem("airchat_token");
+    //             throw new Error("Session expired. Please login again");
+    //         }
 
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.message || "Block request failed");
-            }
+    //         if (!response.ok) {
+    //             const errorData = await response.json();
+    //             throw new Error(errorData.message || "Block request failed");
+    //         }
 
-            return await response.json();
-        } catch (error) {
-            console.error("Blocking error:", error);
-            throw error;
+    //         return await response.json();
+    //     } catch (error) {
+    //         console.error("Blocking error:", error);
+    //         throw error;
+    //     }
+    // };
+
+const blockUser = async (userId) => {
+    try {
+        const token = localStorage.getItem("airchat_token");
+        if (!token) throw new Error("Missing authentication token");
+
+        const response = await fetch(`${BACKEND_URL}/api/users/block/${userId}`, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+            },
+        });
+
+        if (response.status === 401) {
+            localStorage.removeItem("airchat_token");
+            throw new Error("Session expired. Please login again");
         }
-    };
 
-    const handleBlockUser = async () => {
-        if (!activeChat?._id) {
-            toast.error("No active chat selected");
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || "Block request failed");
+        }
+
+        return await response.json();
+    } catch (error) {
+        console.error("Blocking error:", error);
+        throw error;
+    }
+};
+
+
+    // const handleBlockUser = async () => {
+    //     if (!activeChat?._id) {
+    //         toast.error("No active chat selected");
+    //         return;
+    //     }
+
+    //     try {
+    //         const token = localStorage.getItem("airchat_token");
+    //         if (!token) {
+    //             toast.error("Please login first");
+    //             return;
+    //         }
+
+    //         const result = await blockUser(activeChat._id);
+
+    //         const updatedBlocked = [...blockedUsers, activeChat._id];
+    //         setBlockedUsers(updatedBlocked);
+    //         localStorage.setItem("blockedUsers", JSON.stringify(updatedBlocked));
+
+    //         setFriends(prev => prev.filter(friend => friend._id !== activeChat._id));
+    //         setActiveChat(null);
+
+    //         toast.success(result.message);
+    //         setShowMenu(false);
+    //     } catch (err) {
+    //         if (err.message === "Session expired. Please login again") {
+    //             toast.error("Session expired. Please log in again");
+    //             onLogout();
+    //         } else {
+    //             toast.error(err.message || "User blocking failed");
+    //         }
+    //     }
+    // };
+
+    
+const handleBlockUser = async () => {
+    if (!activeChat?._id) {
+        toast.error("No active chat selected");
+        return;
+    }
+
+    try {
+        const token = localStorage.getItem("airchat_token");
+        if (!token) {
+            toast.error("Please login first");
             return;
         }
 
-        try {
-            const token = localStorage.getItem("airchat_token");
-            if (!token) {
-                toast.error("Please login first");
-                return;
-            }
+        const result = await blockUser(activeChat._id);
 
-            const result = await blockUser(activeChat._id);
+        // Update blocked users state & localStorage
+        const updatedBlocked = [...blockedUsers, activeChat._id];
+        setBlockedUsers(updatedBlocked);
+        localStorage.setItem("blockedUsers", JSON.stringify(updatedBlocked));
 
-            const updatedBlocked = [...blockedUsers, activeChat._id];
-            setBlockedUsers(updatedBlocked);
-            localStorage.setItem("blockedUsers", JSON.stringify(updatedBlocked));
+        // Remove from chat list
+        setFriends(prev => prev.filter(friend => friend._id !== activeChat._id));
+        setActiveChat(null);
 
-            setFriends(prev => prev.filter(friend => friend._id !== activeChat._id));
-            setActiveChat(null);
-
-            toast.success(result.message);
-            setShowMenu(false);
-        } catch (err) {
-            if (err.message === "Session expired. Please login again") {
-                toast.error("Session expired. Please log in again");
-                onLogout();
-            } else {
-                toast.error(err.message || "User blocking failed");
-            }
+        toast.success(result.message);
+        setShowMenu(false);
+    } catch (err) {
+        if (err.message === "Session expired. Please login again") {
+            toast.error("Session expired. Please log in again");
+            onLogout();
+        } else {
+            toast.error(err.message || "User blocking failed");
         }
-    };
+    }
+};
 
     useEffect(() => {
         const handleClickOutside = (e) => {
@@ -9350,16 +9470,6 @@ const handleSendVerificationCode = async () => {
   }
 };
 
-
-    // const handleVerifyCode = () => {
-    //     if (verificationCode === generatedCode) {
-    //         setAppLockStep('select');
-    //         toast.success('Verification successful');
-    //     } else {
-    //         toast.error('Incorrect verification code');
-    //     }
-    // };
-
 const handleVerifyCode = () => {
   if (verificationCode === generatedCode) {
     toast.success('Verification successful');
@@ -9379,7 +9489,6 @@ const handleVerifyCode = () => {
   }
 };
 
-
 const startResendCooldown = () => {
   setResendCooldown(30);
   const timer = setInterval(() => {
@@ -9393,16 +9502,10 @@ const startResendCooldown = () => {
   }, 1000);
 };
 
-
 const handleResendCode = () => {
   setVerificationCode('');
   handleSendVerificationCode();
 };
-
-
-
-
-
 
     const handleThemeChange = (theme) => {
         setAppTheme(theme);
@@ -9530,13 +9633,6 @@ const [resendCooldown, setResendCooldown] = useState(0);
             setSaving(false);
         }
     };
-
-
-
-
-
-
-
 
     const triggerFileInput = () => {
         fileInputRef.current.click();
