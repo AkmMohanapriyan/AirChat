@@ -1943,3 +1943,27 @@
   }
 
 }
+
+
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+  margin-right: 8px;
+}
+
+.resend-link {
+  margin-top: 10px;
+  text-align: center;
+}
+
+.email-display {
+  margin: 15px 0;
+  padding: 10px;
+  background: #f5f5f5;
+  border-radius: 4px;
+  text-align: center;
+}

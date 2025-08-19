@@ -8608,7 +8608,7 @@ import {
     FaSearch, FaEllipsisV, FaPaperclip, FaMicrophone, FaSmile,
     FaSignOutAlt, FaCheck, FaClock, FaTimes, FaArrowUp, FaArrowDown,
     FaPalette, FaImage, FaBan, FaTrash, FaUserPlus, FaBell, FaUserFriends, FaUser, FaCog,
-    FaLock, FaUnlock, FaLockOpen, FaRegEye, FaRegEyeSlash, FaCamera
+    FaLock, FaUnlock, FaLockOpen, FaRegEye, FaRegEyeSlash, FaCamera, FaSpinner
 } from 'react-icons/fa';
 import { IoIosSend, IoIosAdd } from 'react-icons/io';
 import { MdArrowBack, MdSearch, MdClose } from 'react-icons/md';
@@ -9004,6 +9004,20 @@ const ChatPage = ({ user: propUser, token, onLogout }) => {
         scrollToBottom();
     }, [messages, activeChat]);
 
+
+
+
+
+    // un lock
+
+    useEffect(() => {
+  if (!showUnlockPopup) {
+    setAppLockStep(null);
+    setVerificationCode('');
+    setUnlockInput('');
+  }
+}, [showUnlockPopup]);
+
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     };
@@ -9302,31 +9316,93 @@ const ChatPage = ({ user: propUser, token, onLogout }) => {
         toast.success('Password lock set successfully');
     };
 
-    const handleForgotPassword = () => {
-        setAppLockStep('verifyEmail');
-        setVerificationEmail(propUser.email);
-    };
+const handleForgotPassword = () => {
+  setAppLockStep('verifyEmail');
+  setVerificationEmail(propUser.email);
+};
 
-    const handleSendVerificationCode = () => {
-        if (verificationEmail !== propUser.email) {
-            toast.error('Email does not match your account');
-            return;
-        }
+const handleSendVerificationCode = async () => {
+  setIsSendingCode(true);
+  
+  try {
+    // Simulate API call delay
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    
+    // Generate 6-digit code
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    setGeneratedCode(code);
+    
+    // In real app: Send code to user's email via backend API
+    console.log("Verification code:", code); // For development
+    toast.info(`Verification code sent to ${propUser.email}`);
+    
+    // Show code in development mode
+    if (process.env.NODE_ENV === 'development') {
+      toast.info(`DEV MODE: Your code is ${code}`);
+    }
+    
+    setAppLockStep('enterCode');
+    startResendCooldown();
+  } catch (error) {
+    toast.error('Failed to send verification code');
+  } finally {
+    setIsSendingCode(false);
+  }
+};
 
-        const code = Math.floor(1000 + Math.random() * 9000);
-        setGeneratedCode(code.toString());
-        toast.info(`Verification code sent to ${verificationEmail}`);
-        setAppLockStep('enterCode');
-    };
 
-    const handleVerifyCode = () => {
-        if (verificationCode === generatedCode) {
-            setAppLockStep('select');
-            toast.success('Verification successful');
-        } else {
-            toast.error('Incorrect verification code');
-        }
-    };
+    // const handleVerifyCode = () => {
+    //     if (verificationCode === generatedCode) {
+    //         setAppLockStep('select');
+    //         toast.success('Verification successful');
+    //     } else {
+    //         toast.error('Incorrect verification code');
+    //     }
+    // };
+
+const handleVerifyCode = () => {
+  if (verificationCode === generatedCode) {
+    toast.success('Verification successful');
+    
+    // Reset app lock
+    localStorage.removeItem(`appLockType_${propUser.id}`);
+    localStorage.removeItem(`appLockValue_${propUser.id}`);
+    
+    // Close popups and reset state
+    setShowUnlockPopup(false);
+    setAppLockType('none');
+    setAppLockStep(null);
+    setVerificationCode('');
+    setUnlockInput('');
+  } else {
+    toast.error('Incorrect verification code');
+  }
+};
+
+
+const startResendCooldown = () => {
+  setResendCooldown(30);
+  const timer = setInterval(() => {
+    setResendCooldown(prev => {
+      if (prev <= 1) {
+        clearInterval(timer);
+        return 0;
+      }
+      return prev - 1;
+    });
+  }, 1000);
+};
+
+
+const handleResendCode = () => {
+  setVerificationCode('');
+  handleSendVerificationCode();
+};
+
+
+
+
+
 
     const handleThemeChange = (theme) => {
         setAppTheme(theme);
@@ -9402,7 +9478,8 @@ const ChatPage = ({ user: propUser, token, onLogout }) => {
     };
 
     const [selectedFile, setSelectedFile] = useState(null);
-
+const [isSendingCode, setIsSendingCode] = useState(false);
+const [resendCooldown, setResendCooldown] = useState(0);
 
     // Handle photo upload
     const handlePhotoChange = (e) => {
@@ -10029,13 +10106,13 @@ const ChatPage = ({ user: propUser, token, onLogout }) => {
                                 {selectedUser.profilePhoto ? (
                                     // <img src={selectedUser.profilePhoto} alt={`${selectedUser.firstName} ${selectedUser.lastName}`} />
                                     <img
-  src={
-    selectedUser.profilePhoto?.startsWith('http')
-      ? selectedUser.profilePhoto
-      : `http://localhost:5000${selectedUser.profilePhoto}`
-  }
-  alt={`${selectedUser.firstName} ${selectedUser.lastName}`}
-/>
+                                        src={
+                                            selectedUser.profilePhoto?.startsWith('http')
+                                                ? selectedUser.profilePhoto
+                                                : `http://localhost:5000${selectedUser.profilePhoto}`
+                                        }
+                                        alt={`${selectedUser.firstName} ${selectedUser.lastName}`}
+                                    />
                                 ) : (
                                     <div className="avatar-placeholder large">
                                         {selectedUser.firstName.charAt(0)}
@@ -10530,7 +10607,7 @@ const ChatPage = ({ user: propUser, token, onLogout }) => {
             )}
 
             {/* App Unlock Popup */}
-            {showUnlockPopup && (
+            {/* {showUnlockPopup && (
                 <div className="unlock-popup">
                     <div className="popup-content">
                         <div className="lock-icon">
@@ -10564,7 +10641,123 @@ const ChatPage = ({ user: propUser, token, onLogout }) => {
                         </div>
                     </div>
                 </div>
-            )}
+            )} */}
+
+
+
+{/* App Unlock Popup */}
+{showUnlockPopup && (
+  <div className="unlock-popup">
+    <div className="popup-content">
+      {/* Forgot Password Flow: Email Verification */}
+      {appLockStep === 'verifyEmail' && (
+        <div>
+          <h3>Verify Your Email</h3>
+          <p>A verification code will be sent to:</p>
+          <div className="email-display">
+            <strong>{propUser.email}</strong>
+          </div>
+          
+          <button 
+            className="unlock-btn" 
+            onClick={handleSendVerificationCode}
+            disabled={isSendingCode}
+          >
+            {isSendingCode ? (
+              <>
+                <FaSpinner className="spinner" /> Sending...
+              </>
+            ) : 'Send Verification Code'}
+          </button>
+          
+          <div className="forgot-link">
+            <button onClick={() => setAppLockStep(null)}>
+              Back to Unlock
+            </button>
+          </div>
+        </div>
+      )}
+
+
+      {/* Forgot Password Flow: Code Verification */}
+      {appLockStep === 'enterCode' && (
+        <div>
+          <h3>Enter Verification Code</h3>
+          <p>Check your email at <strong>{propUser.email}</strong></p>
+          
+          <div className="input-group">
+            <input
+              type="text"
+              value={verificationCode}
+              onChange={(e) => setVerificationCode(e.target.value)}
+              placeholder="Enter 6-digit code"
+              autoFocus
+              maxLength={6}
+            />
+          </div>
+          
+          <button 
+            className="unlock-btn" 
+            onClick={handleVerifyCode}
+            disabled={!verificationCode || verificationCode.length < 6}
+          >
+            Verify Code
+          </button>
+          
+          <div className="resend-link">
+            <button onClick={handleResendCode} disabled={resendCooldown > 0}>
+              {resendCooldown > 0 
+                ? `Resend in ${resendCooldown}s` 
+                : 'Resend Code'}
+            </button>
+          </div>
+          
+          <div className="forgot-link">
+            <button onClick={() => setAppLockStep('verifyEmail')}>
+              Back
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Default Unlock Screen */}
+      {!appLockStep && (
+        <div>
+          <div className="lock-icon">
+            <FaLock />
+          </div>
+          <h3>Unlock AirChat</h3>
+          <p>Enter your {appLockType === 'pin' ? 'PIN' : 'password'} to continue</p>
+          
+          <div className="input-group">
+            <input
+              type={appLockType === 'pin' ? "password" : "password"}
+              value={unlockInput}
+              onChange={(e) => setUnlockInput(e.target.value)}
+              placeholder={`Enter your ${appLockType === 'pin' ? 'PIN' : 'password'}`}
+              autoFocus
+            />
+          </div>
+
+          <button
+            className="unlock-btn"
+            onClick={handleUnlockApp}
+            disabled={!unlockInput}
+          >
+            Unlock
+          </button>
+
+          <div className="forgot-link">
+            <button onClick={handleForgotPassword}>
+              Forgot {appLockType === 'pin' ? 'PIN' : 'password'}?
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  </div>
+)}
+
 
             {/* Profile Settings Modal */}
             {showProfileModal && (
