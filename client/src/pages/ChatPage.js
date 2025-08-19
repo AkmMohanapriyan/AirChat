@@ -10027,7 +10027,15 @@ const ChatPage = ({ user: propUser, token, onLogout }) => {
                         <div className="modal-content">
                             <div className="user-avatar-large">
                                 {selectedUser.profilePhoto ? (
-                                    <img src={selectedUser.profilePhoto} alt={`${selectedUser.firstName} ${selectedUser.lastName}`} />
+                                    // <img src={selectedUser.profilePhoto} alt={`${selectedUser.firstName} ${selectedUser.lastName}`} />
+                                    <img
+  src={
+    selectedUser.profilePhoto?.startsWith('http')
+      ? selectedUser.profilePhoto
+      : `http://localhost:5000${selectedUser.profilePhoto}`
+  }
+  alt={`${selectedUser.firstName} ${selectedUser.lastName}`}
+/>
                                 ) : (
                                     <div className="avatar-placeholder large">
                                         {selectedUser.firstName.charAt(0)}
